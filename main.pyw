@@ -1,4 +1,5 @@
 import Gama, matplotlib
+import numpy as np
 import tkinter as tk
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -12,6 +13,14 @@ def RefreshFpl():
   FplList.delete('1.0',tk.END)
   FplList.insert('1.0',str(FlightPlan))
   FplList.config(state="disabled")
+  u = np.linspace(0, 2 * np.pi, 20)
+  v = np.linspace(0, np.pi, 20)
+  X = 10 * np.outer(np.cos(u), np.sin(v))
+  Y = 10 * np.outer(np.sin(u), np.sin(v))
+  Z = 10 * np.outer(np.ones(np.size(u)), np.cos(v))
+  World.plot_wireframe(X,Y,Z)
+  
+
 
 ClassList : list[str] = []
 TypeList  : list[str] = []
@@ -52,6 +61,7 @@ def InsertWpCallB():
 
 
 home = tk.Tk()
+home.title("PyGama")
 
 FplRepr = tk.StringVar(master = home)
 WpIsFlyOver = tk.IntVar(master=home)
@@ -63,6 +73,10 @@ FplWorkArea.grid(row=0, column=0)
 FplList = tk.Text(master=FplWorkArea, width=80,state="disabled")
 FplList.grid(row=0,column=0)
 FplWorkArea.add(FplList, text="FLIGHT PLAN")
+FplGraph = Figure(dpi=100.0, figsize=[5.0,5.0])
+FplCanvas = FigureCanvasTkAgg(FplGraph, master = FplGroup)
+World = FplGraph.add_subplot(projection='3d')
+FplWorkArea.add(FplCanvas.get_tk_widget(), text="FLIGHT MAP")
 
 InsertWpGroup = tk.LabelFrame(master = home, text = "INSERT WP CMD")
 InsertWpGroup.grid(row=0, column=1)
