@@ -4,16 +4,16 @@ ConnectionType : dict[int : str] = {0 : "STRAIGHT",
                                     1 : "ARC"}
 
 class GamaFplWaypoint:
-  Id      : int
-  Name    : str
-  Type    : int
-  Class   : int
-  X       : float
-  Y       : float
-  Z       : float
-  GapFoll : bool
-  NextSeg : int
-  ArcRad  : int
+  Id         : int
+  Name       : str
+  Type       : int
+  Class      : int
+  X          : float
+  Y          : float
+  Z          : float
+  GapFollows : bool
+  NextSeg    : int
+  ArcRad     : int
   ArcCenterX : float
   ArcCenterY : float
   ArcAngle   : float
@@ -38,7 +38,7 @@ class GamaFplWaypoint:
     self.X          = X
     self.Y          = Y
     self.Z          = Z
-    self.GapFoll    = GapFollows
+    self.GapFollows = GapFollows
     self.NextSeg    = NextConnect
     self.ArcRad     = ArcRadius
     self.ArcCenterX = ArcCenterX
@@ -50,6 +50,7 @@ class GamaFplWaypoint:
     output += self.Name.rjust(6) + ";"
     output += FpWp.TypeDict[self.Type].rjust(6) + ";"
     output += FpWp.ClassDict[self.Class].rjust(6) + ";"
-    output += "GAP" if self.GapFoll else "NO GAP"
+    output += str(int(self.X)) + ", " + str(int(self.Y)) + ", " + str(int(self.Z)) + ";"
+    output += "GAP" if self.GapFollows else "NO GAP"
     output += "\n"
     return output

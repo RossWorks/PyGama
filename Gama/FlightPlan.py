@@ -1,3 +1,8 @@
+if __name__ == "__main__":
+  print("FlightPlan module for Gama package")
+  print("Standalone operation NOT ALLOWED")
+  exit()
+
 from . import FplWaypoint, GamaWaypoints, GeoSolver
 
 FPL_MAX_SIZE : int = 200
@@ -19,12 +24,16 @@ class FlightPlan:
                                          Lon=PposLon,
                                          isFlyOver=True)
     self.Waypoints.append(NewFromWpt)
-    self.UpdateExpFp()
+    self.RecomputeExpFp()
 
-  def __repr__(self) -> str:
+  def __repr__(self, Gama : bool = False) -> str:
     output : str = ""
-    for Waypoint in self.Waypoints:
-      output += str(Waypoint)
+    if Gama:
+      for Waypoint in self.ExpandedWaypoints:
+        output += str(Waypoint)
+    else:
+      for Waypoint in self.Waypoints:
+        output += str(Waypoint)
     return output
   
   def InsertWp(self, Wpt : FplWaypoint.FplWaypoint,
@@ -38,15 +47,15 @@ class FlightPlan:
       self.Waypoints.pop(0)
     else:
       self.Waypoints.insert(InsertInPos-1, Wpt)
-    self.UpdateExpFp()
+    self.RecomputeExpFp()
     
   def RemoveWp(self, DeleteIndex : int):
     if (DeleteIndex < 1 or DeleteIndex > len(self.Waypoints)):
       return
     self.Waypoints.pop(DeleteIndex-1)
-    self.UpdateExpFp()
+    self.RecomputeExpFp()
 
-  def UpdateExpFp(self):
+  def RecomputeExpFp(self):
     self.ExpandedWaypoints.clear()
     X = 0.0
     Y = 0.0
@@ -87,14 +96,14 @@ class FlightPlan:
                                              LonNext = self.Waypoints[Index+1].Lon)
           self.ExpandedWaypoints.append(TmpListOfWp)
         else:
-          X, Y, Z = GeoSolver.LatLon2XYZ(Lat = self.Waypoints[0].Lat,
-                                         Lon = self.Waypoints[0].Lon)
+          X, Y, Z = GeoSolver.LatLon2XYZ(Lat = self.Waypoints[Index].Lat,
+                                         Lon = self.Waypoints[Index].Lon)
           NewGamaWp = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                   Name  = self.Waypoints[Index].Name,
                                                   Type  = self.Waypoints[Index].Type,
                                                   Class = self.Waypoints[Index].Class,
                                                   X=X, Y=Y, Z=Z,
-                                                  GapFollows=True,
+                                                  GapFollows=False,
                                                   NextConnect=0)
           self.ExpandedWaypoints.append(NewGamaWp)
     

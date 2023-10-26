@@ -1,4 +1,4 @@
-import Gama, matplotlib
+import Gama
 import numpy as np
 import tkinter as tk
 from tkinter import ttk
@@ -13,12 +13,15 @@ def RefreshFpl():
   FplList.delete('1.0',tk.END)
   FplList.insert('1.0',str(FlightPlan))
   FplList.config(state="disabled")
-  u = np.linspace(0, 2 * np.pi, 20)
-  v = np.linspace(0, np.pi, 20)
-  X = 10 * np.outer(np.cos(u), np.sin(v))
-  Y = 10 * np.outer(np.sin(u), np.sin(v))
-  Z = 10 * np.outer(np.ones(np.size(u)), np.cos(v))
-  World.plot_wireframe(X,Y,Z)
+  GamaList.config(state="normal")
+  GamaList.delete('1.0',tk.END)
+  GamaList.insert('1.0',FlightPlan.__repr__(Gama=True))
+  GamaList.config(state="disabled")
+  WorldMesh = Gama.MapRender.RenderWorld()
+  World.plot_wireframe(WorldMesh['X'],WorldMesh['Y'],WorldMesh['Z'])
+  RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints)
+  World.plot(RouteMesh['X'], RouteMesh['Y'], RouteMesh['Z'], color="red",
+             marker='o')
   
 
 
@@ -73,10 +76,17 @@ FplWorkArea.grid(row=0, column=0)
 FplList = tk.Text(master=FplWorkArea, width=80,state="disabled")
 FplList.grid(row=0,column=0)
 FplWorkArea.add(FplList, text="FLIGHT PLAN")
-FplGraph = Figure(dpi=100.0, figsize=[5.0,5.0])
+GamaList = tk.Text(master=FplWorkArea, width=80,state="disabled")
+GamaList.grid(row=0,column=0)
+FplWorkArea.add(GamaList, text="GAMA PROTOCOL")
+FplGraph = Figure(dpi=150.0, figsize=[5.0,5.0])
 FplCanvas = FigureCanvasTkAgg(FplGraph, master = FplGroup)
 World = FplGraph.add_subplot(projection='3d')
-FplWorkArea.add(FplCanvas.get_tk_widget(), text="FLIGHT MAP")
+World.set_xlabel("X")
+World.set_ylabel("Y")
+World.set_zlabel("Z")
+World.set_aspect("equal")
+FplWorkArea.add(FplCanvas.get_tk_widget(), text="3D FLIGHT MAP")
 
 InsertWpGroup = tk.LabelFrame(master = home, text = "INSERT WP CMD")
 InsertWpGroup.grid(row=0, column=1)
