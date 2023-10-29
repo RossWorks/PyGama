@@ -1,7 +1,10 @@
 from . import FplWaypoint as FpWp
 
-ConnectionType : dict[int : str] = {0 : "STRAIGHT",
-                                    1 : "ARC"}
+STRAIGHT : str = "STRAIGHT"
+ARC      : str = "ARC"
+
+ConnectionType : dict[int : str] = {0 : STRAIGHT,
+                                    1 : ARC}
 
 class GamaFplWaypoint:
   Id         : int
@@ -51,6 +54,7 @@ class GamaFplWaypoint:
     output += FpWp.TypeDict[self.Type].rjust(6) + ";"
     output += FpWp.ClassDict[self.Class].rjust(6) + ";"
     output += str(int(self.X)) + ", " + str(int(self.Y)) + ", " + str(int(self.Z)) + ";"
-    output += "GAP" if self.GapFollows else "NO GAP"
+    output += "GAP" if self.GapFollows else "NO GAP" + ";"
+    output += STRAIGHT if self.NextSeg == 0 else ARC + ";"
     output += "\n"
     return output

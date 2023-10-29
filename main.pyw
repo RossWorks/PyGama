@@ -17,11 +17,14 @@ def RefreshFpl():
   GamaList.delete('1.0',tk.END)
   GamaList.insert('1.0',FlightPlan.__repr__(Gama=True))
   GamaList.config(state="disabled")
+  World.clear()
   WorldMesh = Gama.MapRender.RenderWorld()
   World.plot_wireframe(WorldMesh['X'],WorldMesh['Y'],WorldMesh['Z'])
   RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints)
-  World.plot(RouteMesh['X'], RouteMesh['Y'], RouteMesh['Z'], color="red",
-             marker='o')
+  for segment in RouteMesh:
+    marker = '--' if segment.Intended else ''
+    World.plot(segment.Route[:,0],segment.Route[:,1], segment.Route[:,2],
+               color=segment.Color, marker=marker)
   
 
 
