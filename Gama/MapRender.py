@@ -24,8 +24,12 @@ def RenderWorld(LatRes : int = 20, LonRes : int = 20) -> dict[str : np.ndarray]:
 def DrawGreatCircle(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint, 
                     EndPoint : Fp.GamaWaypoints.GamaFplWaypoint) -> np.ndarray:
   output = np.zeros(shape=(100,1))
-  p1 = np.array([StartPoint.X,StartPoint.Y, StartPoint.Z])
-  p2 = np.array([EndPoint.X,EndPoint.Y, EndPoint.Z])
+  Xyz = GeoSolver.LatLon2XYZ(Lat=StartPoint.Lat, Lon=StartPoint.Lon)
+  p1 = np.array(Xyz)
+  print("p1 = " + str(p1))
+  Xyz = GeoSolver.LatLon2XYZ(Lat=EndPoint.Lat, Lon=EndPoint.Lon)
+  p2 = np.array(Xyz)
+  print("p2 = " + str(p2))
   n = (np.cross(p1,p2))
   n = n/np.sqrt(np.dot(n,n))
   print("n = " + str(n))
@@ -46,7 +50,7 @@ def RenderGamaFpl(GamaFpl : list[Fp.GamaWaypoints.GamaFplWaypoint]) -> list[Grap
   NextSegIsArc : bool = False
   if FpSize == 1:
     TmpSegment.Color = 'k'
-    TmpSegment.Route[0,0] = GamaFpl[0].X
+    TmpSegment.Route[0,0] = GamaFpl[0].Lat
     output.append(TmpSegment)
   else:
     for index in range(0,FpSize-1):

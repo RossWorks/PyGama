@@ -18,7 +18,7 @@ def RefreshFpl():
   GamaList.insert('1.0',FlightPlan.__repr__(Gama=True))
   GamaList.config(state="disabled")
   World.clear()
-  WorldMesh = Gama.MapRender.RenderWorld()
+  WorldMesh = Gama.MapRender.RenderWorld(LatRes=30,LonRes=30)
   World.plot_wireframe(WorldMesh['X'],WorldMesh['Y'],WorldMesh['Z'])
   RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints)
   for segment in RouteMesh:

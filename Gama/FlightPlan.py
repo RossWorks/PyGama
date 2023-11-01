@@ -57,30 +57,25 @@ class FlightPlan:
 
   def RecomputeExpFp(self):
     self.ExpandedWaypoints.clear()
-    X = 0.0
-    Y = 0.0
-    Z = 0.0
     if len(self.Waypoints) == 1:
-      X, Y, Z = GeoSolver.LatLon2XYZ(Lat = self.Waypoints[0].Lat,
-                                     Lon = self.Waypoints[0].Lon)
       NewGamaWp = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                 Name=self.Waypoints[0].Name,
                                                 Type=self.Waypoints[0].Type,
                                                 Class=self.Waypoints[0].Class,
-                                                X=X, Y=Y, Z=Z,
+                                                Lat = self.Waypoints[0].Lat,
+                                                Lon = self.Waypoints[0].Lon,
                                                 GapFollows=True,
                                                 NextConnect=0)
       self.ExpandedWaypoints.append(NewGamaWp)
       return
     for Index in range(0, len(self.Waypoints)):
       if Index == len(self.Waypoints):
-        X, Y, Z = GeoSolver.LatLon2XYZ(Lat = self.Waypoints[0].Lat,
-                                       Lon = self.Waypoints[0].Lon)
         NewGamaWp = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                   Name  = self.Waypoints[Index].Name,
                                                   Type  = self.Waypoints[Index].Type,
                                                   Class = self.Waypoints[Index].Class,
-                                                  X=X, Y=Y, Z=Z,
+                                                  Lat = self.Waypoints[Index].Lat,
+                                                  Lon = self.Waypoints[Index].Lon,
                                                   GapFollows=True,
                                                   NextConnect=0)
         self.ExpandedWaypoints.append(NewGamaWp)
@@ -96,13 +91,12 @@ class FlightPlan:
                                              LonNext = self.Waypoints[Index+1].Lon)
           self.ExpandedWaypoints.append(TmpListOfWp)
         else:
-          X, Y, Z = GeoSolver.LatLon2XYZ(Lat = self.Waypoints[Index].Lat,
-                                         Lon = self.Waypoints[Index].Lon)
           NewGamaWp = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                   Name  = self.Waypoints[Index].Name,
                                                   Type  = self.Waypoints[Index].Type,
                                                   Class = self.Waypoints[Index].Class,
-                                                  X=X, Y=Y, Z=Z,
+                                                  Lat = self.Waypoints[Index].Lat,
+                                                  Lon = self.Waypoints[Index].Lon,
                                                   GapFollows=False,
                                                   NextConnect=0)
           self.ExpandedWaypoints.append(NewGamaWp)
@@ -110,5 +104,5 @@ class FlightPlan:
   def GetGraphicalGamaPoints(self) -> list[list[float]]:
     output : list[list[float]] = []
     for Point in self.ExpandedWaypoints:
-      output.append([Point.X,Point.Y, Point.Z])
+      output.append([Point.Lat,Point.Lon, Point.Z])
     return output

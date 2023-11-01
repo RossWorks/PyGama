@@ -11,9 +11,8 @@ class GamaFplWaypoint:
   Name       : str
   Type       : int
   Class      : int
-  X          : float
-  Y          : float
-  Z          : float
+  Lat        : float
+  Lon        : float
   GapFollows : bool
   NextSeg    : int
   ArcRad     : int
@@ -25,9 +24,8 @@ class GamaFplWaypoint:
                Name : str = "******",
                Type : int = 0,
                Class : int = 0,
-               X : float = 0.0,
-               Y : float = 0.0,
-               Z : float = 0.0,
+               Lat : float = 0.0,
+               Lon : float = 0.0,
                GapFollows : bool = False,
                NextConnect : int = 0,
                ArcRadius : int = 0,
@@ -38,9 +36,8 @@ class GamaFplWaypoint:
     self.Name       = Name
     self.Type       = Type
     self.Class      = Class
-    self.X          = X
-    self.Y          = Y
-    self.Z          = Z
+    self.Lat        = Lat
+    self.Lon        = Lon
     self.GapFollows = GapFollows
     self.NextSeg    = NextConnect
     self.ArcRad     = ArcRadius
@@ -53,8 +50,9 @@ class GamaFplWaypoint:
     output += self.Name.rjust(6) + ";"
     output += FpWp.TypeDict[self.Type].rjust(6) + ";"
     output += FpWp.ClassDict[self.Class].rjust(6) + ";"
-    output += str(int(self.X)) + ", " + str(int(self.Y)) + ", " + str(int(self.Z)) + ";"
-    output += "GAP" if self.GapFollows else "NO GAP" + ";"
-    output += STRAIGHT if self.NextSeg == 0 else ARC + ";"
+    output += str(int(self.Lat)).rjust(9) + ", " 
+    output += str(int(self.Lon)).rjust(9) + ";"
+    output += ("GAP" if self.GapFollows else "NO GAP").rjust(6) + ";"
+    output += (STRAIGHT if self.NextSeg == 0 else ARC).rjust(9) + ";"
     output += "\n"
     return output
