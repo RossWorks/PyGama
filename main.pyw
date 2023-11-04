@@ -5,8 +5,8 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=0.0,
-                                        PposLon=0.0)
+FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=45.5,
+                                        PposLon=8.7)
 
 def RefreshFpl():
   FplList.config(state="normal")
@@ -20,10 +20,23 @@ def RefreshFpl():
   World.clear()
   WorldMesh = Gama.MapRender.RenderWorld(LatRes=30,LonRes=30)
   World.plot_wireframe(WorldMesh['X'],WorldMesh['Y'],WorldMesh['Z'])
-  RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints)
+  RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
+                                           Use3D=True)
   for segment in RouteMesh:
     marker = '--' if segment.Intended else ''
     World.plot(segment.Route[:,0],segment.Route[:,1], segment.Route[:,2],
+               color=segment.Color, marker=marker)
+  RouteMesh.clear()
+  RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
+                                           Use3D=False)
+  CdMap.clear()
+  # CdMap.set_aspect("equal")
+  CdMap.set_theta_direction(-1)
+  CdMap.set_theta_zero_location('N')
+  print(len(RouteMesh))
+  for segment in RouteMesh:
+    marker = '--' if segment.Intended else ''
+    CdMap.plot(segment.Route[:,0],segment.Route[:,1]/1852,
                color=segment.Color, marker=marker)
   
 
@@ -90,6 +103,14 @@ World.set_ylabel("Y")
 World.set_zlabel("Z")
 World.set_aspect("equal")
 FplWorkArea.add(FplCanvas.get_tk_widget(), text="3D FLIGHT MAP")
+Cds = Figure(dpi=150.0, figsize=[5.0,5.0])
+Cdscreen = FigureCanvasTkAgg(Cds, master = FplWorkArea)
+CdMap = Cds.add_subplot(projection='polar')
+CdMap.set_theta_zero_location('N')
+CdMap.set_theta_direction(-1)
+#CdMap.set_facecolor('k')
+CdMap.axes.clear()
+FplWorkArea.add(Cdscreen.get_tk_widget(), text="CDS MAP")
 
 InsertWpGroup = tk.LabelFrame(master = home, text = "INSERT WP CMD")
 InsertWpGroup.grid(row=0, column=1)

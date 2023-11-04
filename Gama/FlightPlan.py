@@ -100,9 +100,3 @@ class FlightPlan:
                                                   GapFollows=False,
                                                   NextConnect=0)
           self.ExpandedWaypoints.append(NewGamaWp)
-    
-  def GetGraphicalGamaPoints(self) -> list[list[float]]:
-    output : list[list[float]] = []
-    for Point in self.ExpandedWaypoints:
-      output.append([Point.Lat,Point.Lon, Point.Z])
-    return output
