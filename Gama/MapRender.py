@@ -35,7 +35,7 @@ def DrawPolarStraightLine(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
   print("p2 = " + str(p2))
   pre_output[:,0] = np.linspace(p1[0],p2[0],100)
   pre_output[:,1] = np.linspace(p1[1],p2[1],100)
-  output[:,0] = (np.arctan2(pre_output[:,1],pre_output[:,0]))
+  output[:,0] = np.arctan2(pre_output[:,0],pre_output[:,1])
   output[:,1] = np.sqrt(np.power(pre_output[:,1],2)+np.power(pre_output[:,0],2))
   print(output)
   return output

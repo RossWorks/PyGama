@@ -21,13 +21,11 @@ def LatLon2XY(Lat : float, Lon : float,
   cos_phi   = math.cos(math.radians(Lat))
   sin_phi0  = math.sin(math.radians(OriginLat))
   sin_phi   = math.sin(math.radians(Lat))
-  cos_rho_R = sin_phi0 * sin_phi + cos_phi0 * cos_phi * math.cos(math.radians(Lon-OriginLon))
-  rho       = EARTH_RADIUS * math.acos(cos_rho_R)
-  tan_theta = cos_phi * math.cos(math.radians(Lon-OriginLon)) /\
-             (cos_phi0*sin_phi - sin_phi0*cos_phi* math.cos(math.radians(Lon-OriginLon)))
-  theta     = math.atan(tan_theta)
-  output[0] = rho * math.sin(theta)
-  output[1] = rho * math.cos(theta) * -1
+  cos_c     = sin_phi0 * sin_phi + cos_phi0 * cos_phi * math.cos(math.radians(Lon-OriginLon))
+  c = math.acos(cos_c)
+  k = c / math.sin(c)
+  output[0] = k * cos_phi * math.sin(math.radians(Lon-OriginLon))
+  output[1] = k * (cos_phi0 * sin_phi - sin_phi0*cos_phi*math.cos(math.radians(Lon-OriginLon)))
   return output
 
 def LatLon2XYZ(Lat : float, Lon : float, Height : int = 0) -> list[float]:
