@@ -38,6 +38,9 @@ class FlightPlan:
   
   def InsertWp(self, Wpt : FplWaypoint.FplWaypoint,
                InsertInPos : int = APPEND_INDEX):
+    '''This function inserts Wpt @ InsertInPos position (default is 0 for append)
+    
+    Asking for InsertInPos = 1 means replacing the first Wp'''
     if (InsertInPos > FPL_MAX_SIZE):
       return
     elif (InsertInPos <= 0 or InsertInPos > len(self.Waypoints)):

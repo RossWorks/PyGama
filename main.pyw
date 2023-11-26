@@ -56,6 +56,7 @@ def RemoveWpCallB():
   RefreshFpl()
 
 def InsertWpCallB():
+  '''This function calls for a new wp insertion in the active flightplan'''
   MyType  : int = -1
   MyClass : int = -1
   for key in Gama.FlightPlan.FplWaypoint.TypeDict:

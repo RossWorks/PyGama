@@ -37,7 +37,6 @@ def DrawPolarStraightLine(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
   pre_output[:,1] = np.linspace(p1[1],p2[1],100)
   output[:,0] = np.arctan2(pre_output[:,0],pre_output[:,1])
   output[:,1] = np.sqrt(np.power(pre_output[:,1],2)+np.power(pre_output[:,0],2))
-  print(output)
   return output
 
 def DrawGreatCircle(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint, 
