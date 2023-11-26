@@ -38,6 +38,30 @@ def RefreshFpl():
     marker = '--' if segment.Intended else ''
     CdMap.plot(segment.Route[:,0],segment.Route[:,1]/1852,
                color=segment.Color, marker=marker)
+  Wp_array = np.ndarray(shape=[100,2])
+  Names = list()
+  Wp_array_size = 0
+  for point in FlightPlan.Waypoints:
+    WPT_type = ""
+    TmpList = Gama.MapRender.GeoSolver.LatLon2XY(Lat=point.Lat,
+                                                 Lon=point.Lon,
+                                           OriginLat=Gama.MapRender.CDScenter[0],
+                                           OriginLon=Gama.MapRender.CDScenter[1])
+    Wp_array[Wp_array_size,0] = TmpList[0]
+    Wp_array[Wp_array_size,1] = TmpList[1]
+    if point.Type == 3:  #VHF
+      WPT_type = "*"
+    elif point.Type==1: #USR
+      WPT_type="o"
+    elif point.Type == 2: # APT
+      WPT_type="+"
+    else:
+      WPT_type="+"
+    CdMap.plot(Wp_array[Wp_array_size,0],Wp_array[Wp_array_size,1],marker=WPT_type)
+    CdMap.text(Wp_array[Wp_array_size,0],Wp_array[Wp_array_size,1],point.Name)
+    Wp_array_size += 1
+    Names.append(point.Name)
+              
   
 
 
