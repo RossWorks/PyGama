@@ -17,6 +17,8 @@ def RefreshFpl():
   GamaList.delete('1.0',tk.END)
   GamaList.insert('1.0',FlightPlan.__repr__(Gama=True))
   GamaList.config(state="disabled")
+
+  #3D Flight map
   World.clear()
   WorldMesh = Gama.MapRender.RenderWorld(LatRes=30,LonRes=30)
   World.plot_wireframe(WorldMesh['X'],WorldMesh['Y'],WorldMesh['Z'])
@@ -26,11 +28,12 @@ def RefreshFpl():
     marker = '--' if segment.Intended else ''
     World.plot(segment.Route[:,0],segment.Route[:,1], segment.Route[:,2],
                color=segment.Color, marker=marker)
+    
+  #2D Gama FPL
   RouteMesh.clear()
   RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
                                            Use3D=False)
   CdMap.clear()
-  # CdMap.set_aspect("equal")
   CdMap.set_theta_direction(-1)
   CdMap.set_theta_zero_location('N')
   print(len(RouteMesh))
@@ -38,32 +41,18 @@ def RefreshFpl():
     marker = '--' if segment.Intended else ''
     CdMap.plot(segment.Route[:,0],segment.Route[:,1]/1852,
                color=segment.Color, marker=marker)
-  Wp_array = np.ndarray(shape=[100,2])
-  Names = list()
-  Wp_array_size = 0
-  for point in FlightPlan.Waypoints:
-    WPT_type = ""
-    TmpList = Gama.MapRender.GeoSolver.LatLon2XY(Lat=point.Lat,
-                                                 Lon=point.Lon,
-                                           OriginLat=Gama.MapRender.CDScenter[0],
-                                           OriginLon=Gama.MapRender.CDScenter[1])
-    Wp_array[Wp_array_size,0] = TmpList[0]
-    Wp_array[Wp_array_size,1] = TmpList[1]
-    if point.Type == 3:  #VHF
-      WPT_type = "*"
-    elif point.Type==1: #USR
-      WPT_type="o"
-    elif point.Type == 2: # APT
-      WPT_type="+"
-    else:
-      WPT_type="+"
-    CdMap.plot(Wp_array[Wp_array_size,0],Wp_array[Wp_array_size,1],marker=WPT_type)
-    CdMap.text(Wp_array[Wp_array_size,0],Wp_array[Wp_array_size,1],point.Name)
-    Wp_array_size += 1
-    Names.append(point.Name)
-              
   
-
+  #Names in 2D FPLN
+  TmpWp = list()
+  for point in FlightPlan.Waypoints:
+    TmpWp = Gama.MapRender.GeoSolver.LatLon2XY(Lat=point.Lat,
+                                               Lon=point.Lon,
+                                               OriginLat=Gama.MapRender.CDScenter[0],
+                                               OriginLon=Gama.MapRender.CDScenter[1])
+    TmpWp = Gama.MapRender.GeoSolver.XY2ThetaRho(X=TmpWp[0],Y=TmpWp[1])
+    print("X = " + str(TmpWp[0]) + " Y = "+ str(TmpWp[1]))
+    CdMap.plot(TmpWp[0], TmpWp[1]/1852, marker="o")
+    CdMap.text(TmpWp[0], TmpWp[1]/1852, point.Name)
 
 ClassList : list[str] = []
 TypeList  : list[str] = []
