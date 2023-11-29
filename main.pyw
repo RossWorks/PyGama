@@ -1,5 +1,4 @@
 import Gama
-import numpy as np
 import tkinter as tk
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -43,16 +42,10 @@ def RefreshFpl():
                color=segment.Color, marker=marker)
   
   #Names in 2D FPLN
-  TmpWp = list()
-  for point in FlightPlan.Waypoints:
-    TmpWp = Gama.MapRender.GeoSolver.LatLon2XY(Lat=point.Lat,
-                                               Lon=point.Lon,
-                                               OriginLat=Gama.MapRender.CDScenter[0],
-                                               OriginLon=Gama.MapRender.CDScenter[1])
-    TmpWp = Gama.MapRender.GeoSolver.XY2ThetaRho(X=TmpWp[0],Y=TmpWp[1])
-    print("X = " + str(TmpWp[0]) + " Y = "+ str(TmpWp[1]))
-    CdMap.plot(TmpWp[0], TmpWp[1]/1852, marker="o")
-    CdMap.text(TmpWp[0], TmpWp[1]/1852, point.Name)
+  GraphWps = Gama.MapRender.RenderWps(FlightPlan.Waypoints,is3D=False)
+  for point in GraphWps:
+    CdMap.plot(point.Theta, point.Rho/1852, marker=point.Marker, color = point.Color)
+    CdMap.text(point.Theta, point.Rho/1852, point.Name)
 
 ClassList : list[str] = []
 TypeList  : list[str] = []

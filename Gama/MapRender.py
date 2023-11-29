@@ -1,7 +1,26 @@
-from . import FlightPlan as Fp, GeoSolver
+from . import FlightPlan as Fp, GeoSolver, FplWaypoint
 import math, numpy as np
 
 CDScenter = [45.5, 8.7]
+
+MARKER_APT = "^"
+MARKER_NDB = "o"
+MARKER_USR = "*"
+MARKER_VHF = "h"
+MARKER_WPT = "D"
+MARKER_NULL = "."
+Type_marker_dict : dict[str:str] = {"APT" : MARKER_APT,
+                                    "NDB" : MARKER_NDB,
+                                    "USR" : MARKER_USR,
+                                    "VHF" : MARKER_VHF,
+                                    "WPT" : MARKER_WPT}
+
+Type_color_dict : dict[str:str] = {"APT" : "cyan",
+                                   "NDB" : "orange",
+                                   "USR" : "yellow",
+                                   "VHF" : "green",
+                                   "WPT" : "pink"}
+
 
 class GraphFpSegment:
   Intended : bool
@@ -13,6 +32,38 @@ class GraphFpSegment:
     self.Route = 0.0 * np.zeros(shape=(100,3), dtype=np.float64)
     self.Color = 'k'
 
+class GraphWpMarker:
+  Name  : str
+  Color : str
+  Marker: str
+  Theta : float
+  Rho : float
+  X : float
+  Y : float
+  Z : float
+
+  def __init__(self) -> None:
+    self.Name = "******"
+    self.Color = 'k'
+    self.Marker = MARKER_NULL
+    self.X = 0.0
+    self.Y = 0.0
+    self.Z = 0.0
+    self.Theta = 0.0
+    self.Rho = 0.0
+  
+  def SetPolarPosition(self, Rho : float, Theta : float):
+    self.Rho = Rho
+    self.Theta = Theta
+
+  def SetMarker(self, Marker : str):
+    self.Marker = Marker
+  
+  def SetColor(self, Color : str):
+    self.Color = Color
+
+  def SetName(self, Name : str):
+    self.Name = Name
 
 def RenderWorld(LatRes : int = 20, LonRes : int = 20) -> dict[str : np.ndarray]:
   output : dict[str:np.ndarray] = {}
@@ -89,5 +140,28 @@ def RenderGamaFpl(GamaFpl : list[Fp.GamaWaypoints.GamaFplWaypoint],
           TmpSegment.Route = DrawPolarStraightLine(StartPoint = GamaFpl[index],
                                                    EndPoint   = GamaFpl[index+1])
       output.append(TmpSegment)
+  return output
+
+def RenderWps(WpList : list[FplWaypoint.FplWaypoint],
+              is3D : bool = True) -> list[GraphWpMarker]:
+  output : list[GraphWpMarker] = []
+  for point in WpList:
+    TmpGraphWp = GraphWpMarker()
+    X,Y = GeoSolver.LatLon2XY(Lat=point.Lat,
+                                Lon=point.Lon,
+                                OriginLat=CDScenter[0],
+                                OriginLon=CDScenter[1])
+    Theta,Rho = GeoSolver.XY2ThetaRho(X=X,Y=Y)
+    TmpGraphWp.SetPolarPosition(Rho=Rho,Theta=Theta)
+    try:
+      TmpGraphWp.SetMarker(Marker=Type_marker_dict[point.GetType()])
+    except KeyError:
+      TmpGraphWp.Marker = MARKER_NULL
+    try:
+      TmpGraphWp.SetColor(Color=Type_color_dict[point.GetType()])
+    except KeyError:
+      TmpGraphWp.Color = "k"
+    TmpGraphWp.SetName(Name=point.Name)
+    output.append(TmpGraphWp)
   return output
   

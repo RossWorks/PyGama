@@ -46,3 +46,9 @@ class FplWaypoint:
     output += "FLY OV" if self.FlyOver else "FLY BY"
     output += "\n"
     return output
+  
+  def GetClass(self) -> str:
+    return ClassDict[self.Class]
+  
+  def GetType(self) -> str:
+    return TypeDict[self.Type]
