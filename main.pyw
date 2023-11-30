@@ -1,5 +1,4 @@
 import Gama
-import numpy as np
 import tkinter as tk
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -17,6 +16,8 @@ def RefreshFpl():
   GamaList.delete('1.0',tk.END)
   GamaList.insert('1.0',FlightPlan.__repr__(Gama=True))
   GamaList.config(state="disabled")
+
+  #3D Flight map
   World.clear()
   WorldMesh = Gama.MapRender.RenderWorld(LatRes=30,LonRes=30)
   World.plot_wireframe(WorldMesh['X'],WorldMesh['Y'],WorldMesh['Z'])
@@ -26,11 +27,12 @@ def RefreshFpl():
     marker = '--' if segment.Intended else ''
     World.plot(segment.Route[:,0],segment.Route[:,1], segment.Route[:,2],
                color=segment.Color, marker=marker)
+    
+  #2D Gama FPL
   RouteMesh.clear()
   RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
                                            Use3D=False)
   CdMap.clear()
-  # CdMap.set_aspect("equal")
   CdMap.set_theta_direction(-1)
   CdMap.set_theta_zero_location('N')
   print(len(RouteMesh))
@@ -39,7 +41,11 @@ def RefreshFpl():
     CdMap.plot(segment.Route[:,0],segment.Route[:,1]/1852,
                color=segment.Color, marker=marker)
   
-
+  #Names in 2D FPLN
+  GraphWps = Gama.MapRender.RenderWps(FlightPlan.Waypoints,is3D=False)
+  for point in GraphWps:
+    CdMap.plot(point.Theta, point.Rho/1852, marker=point.Marker, color = point.Color)
+    CdMap.text(point.Theta, point.Rho/1852, point.Name)
 
 ClassList : list[str] = []
 TypeList  : list[str] = []

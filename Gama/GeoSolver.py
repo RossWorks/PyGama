@@ -48,3 +48,9 @@ def LatLon2XYZ(Lat : float, Lon : float, Height : int = 0) -> list[float]:
   output[1] = (EARTH_RADIUS + Height) * math.cos(math.radians(Lat)) * math.sin(math.radians(Lon))
   output[2] = (EARTH_RADIUS + Height) * math.sin(math.radians(Lat))
   return output
+
+def XY2ThetaRho(X : float, Y : float) -> list[float]:
+  output = [0.0, 0.0]
+  output[0] = math.atan2(X,Y)
+  output[1] = math.sqrt(math.pow(X,2) + math.pow(Y,2))
+  return output
