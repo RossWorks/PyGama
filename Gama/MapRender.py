@@ -1,26 +1,9 @@
-from . import FlightPlan as Fp, GeoSolver, FplWaypoint
-import math, numpy as np
+from . import FlightPlan as Fp, GeoSolver, FplWaypoint, GamaSettings
+import numpy as np
 
 CDScenter = [45.5, 8.7]
 
-MARKER_APT = "^"
-MARKER_NDB = "o"
-MARKER_USR = "*"
-MARKER_VHF = "h"
-MARKER_WPT = "D"
-MARKER_NULL = "."
-Type_marker_dict : dict[str:str] = {"APT" : MARKER_APT,
-                                    "NDB" : MARKER_NDB,
-                                    "USR" : MARKER_USR,
-                                    "VHF" : MARKER_VHF,
-                                    "WPT" : MARKER_WPT}
-
-Type_color_dict : dict[str:str] = {"APT" : "cyan",
-                                   "NDB" : "orange",
-                                   "USR" : "yellow",
-                                   "VHF" : "green",
-                                   "WPT" : "pink"}
-
+CDSsettings = GamaSettings.GamaSettings("./Settings/New.ini")
 
 class GraphFpSegment:
   Intended : bool
@@ -45,7 +28,7 @@ class GraphWpMarker:
   def __init__(self) -> None:
     self.Name = "******"
     self.Color = 'k'
-    self.Marker = MARKER_NULL
+    self.Marker = CDSsettings.MARKER_NULL
     self.X = 0.0
     self.Y = 0.0
     self.Z = 0.0
@@ -153,14 +136,9 @@ def RenderWps(WpList : list[FplWaypoint.FplWaypoint],
                                 OriginLon=CDScenter[1])
     Theta,Rho = GeoSolver.XY2ThetaRho(X=X,Y=Y)
     TmpGraphWp.SetPolarPosition(Rho=Rho,Theta=Theta)
-    try:
-      TmpGraphWp.SetMarker(Marker=Type_marker_dict[point.GetType()])
-    except KeyError:
-      TmpGraphWp.Marker = MARKER_NULL
-    try:
-      TmpGraphWp.SetColor(Color=Type_color_dict[point.GetType()])
-    except KeyError:
-      TmpGraphWp.Color = "k"
+    Marker, Color = CDSsettings.GetWpMarker_Color(Point=point)
+    TmpGraphWp.SetMarker(Marker=Marker)
+    TmpGraphWp.SetColor(Color=Color)
     TmpGraphWp.SetName(Name=point.Name)
     output.append(TmpGraphWp)
   return output

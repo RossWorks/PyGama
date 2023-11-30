@@ -1,1 +1,1 @@
-from . import FlightPlan, MapRender
+from . import FlightPlan, MapRender, GamaSettings
