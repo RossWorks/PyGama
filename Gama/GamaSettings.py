@@ -1,7 +1,7 @@
 from . import FplWaypoint
 import configparser as ini
 
-class GamaSettings:
+class CDSsettings:
   MARKER_APT  : str
   MARKER_NDB  : str
   MARKER_USR  : str
@@ -10,6 +10,8 @@ class GamaSettings:
   MARKER_NULL : str
   Type_marker_dict : dict[str:str] = {}
   Type_color_dict : dict[str:str] = {}
+  LENGTH_UNIT : str
+  HEIGHT_UNIT : str
 
   def __init__(self, SettingFile : str) -> None:
     self.LoadDefaultSettings()
@@ -28,6 +30,8 @@ class GamaSettings:
     self.Type_marker_dict["NDB"] = Config["CDS"]["NDB_MARKER"]
     self.Type_marker_dict["WPT"] = Config["CDS"]["WPT_MARKER"]
     self.Type_marker_dict["USR"] = Config["CDS"]["USR_MARKER"]
+    self.HEIGHT_UNIT = Config["CDS"]["HEIGHT_UNIT"]
+    self.LENGTH_UNIT = Config["CDS"]["LENGTH_UNIT"]
 
   def LoadDefaultSettings(self) -> None:
     self.MARKER_APT = "^"
@@ -36,6 +40,8 @@ class GamaSettings:
     self.MARKER_VHF = "h"
     self.MARKER_WPT = "D"
     self.MARKER_NULL = "."
+    self.LENGTH_UNIT = "NAUTICAL_MILES"
+    self.HEIGHT_UNIT = "FEET"
     self.Type_marker_dict : dict[str:str] = {"APT" : self.MARKER_APT,
                                              "NDB" : self.MARKER_NDB,
                                              "USR" : self.MARKER_USR,
@@ -58,3 +64,6 @@ class GamaSettings:
       Color = 'k'
     output = [Marker, Color]
     return output
+  
+  def GetLengthSetting(self) -> str:
+    return self.LENGTH_UNIT

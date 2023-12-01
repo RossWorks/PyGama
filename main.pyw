@@ -38,14 +38,14 @@ def RefreshFpl():
   print(len(RouteMesh))
   for segment in RouteMesh:
     marker = '--' if segment.Intended else ''
-    CdMap.plot(segment.Route[:,0],segment.Route[:,1]/1852,
+    CdMap.plot(segment.Route[:,0],segment.Route[:,1],
                color=segment.Color, marker=marker)
   
   #Names in 2D FPLN
   GraphWps = Gama.MapRender.RenderWps(FlightPlan.Waypoints,is3D=False)
   for point in GraphWps:
-    CdMap.plot(point.Theta, point.Rho/1852, marker=point.Marker, color = point.Color)
-    CdMap.text(point.Theta, point.Rho/1852, point.Name)
+    CdMap.plot(point.Theta, point.Rho, marker=point.Marker, color = point.Color)
+    CdMap.text(point.Theta, point.Rho, point.Name)
 
 ClassList : list[str] = []
 TypeList  : list[str] = []

@@ -3,7 +3,21 @@ import numpy as np
 
 CDScenter = [45.5, 8.7]
 
-CDSsettings = GamaSettings.GamaSettings("./Settings/New.ini")
+#this dict hold the conversion factor from meters to [key]
+Length_conversion_factor : dict[str:float] = {"METERS" : 1,
+                                              "NAUTICAL_MILES" : 0.00053996,
+                                              "STATUTE_MILES" : 0.000621504,
+                                              "KILOMETERS" : 0.001,
+                                              "FEET" : 3}
+
+CDSsettings = GamaSettings.CDSsettings("./Settings/New.ini")
+
+def DecDeg2DDMM_MM(Degrees : float) -> str:
+  output = ""
+  Deg = int(Degrees)
+  Min = (Degrees - Deg) * 60
+  output = str(Deg) + "° " + str(Min) + "\'"
+  return output
 
 class GraphFpSegment:
   Intended : bool
@@ -70,7 +84,8 @@ def DrawPolarStraightLine(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
   pre_output[:,0] = np.linspace(p1[0],p2[0],100)
   pre_output[:,1] = np.linspace(p1[1],p2[1],100)
   output[:,0] = np.arctan2(pre_output[:,0],pre_output[:,1])
-  output[:,1] = np.sqrt(np.power(pre_output[:,1],2)+np.power(pre_output[:,0],2))
+  output[:,1] = np.sqrt(np.power(pre_output[:,1],2)+np.power(pre_output[:,0],2))\
+                * Length_conversion_factor[CDSsettings.GetLengthSetting()]
   print(output)
   return output
 
@@ -135,6 +150,7 @@ def RenderWps(WpList : list[FplWaypoint.FplWaypoint],
                                 OriginLat=CDScenter[0],
                                 OriginLon=CDScenter[1])
     Theta,Rho = GeoSolver.XY2ThetaRho(X=X,Y=Y)
+    Rho = Rho * Length_conversion_factor[CDSsettings.GetLengthSetting()]
     TmpGraphWp.SetPolarPosition(Rho=Rho,Theta=Theta)
     Marker, Color = CDSsettings.GetWpMarker_Color(Point=point)
     TmpGraphWp.SetMarker(Marker=Marker)
