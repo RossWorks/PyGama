@@ -28,12 +28,15 @@ class FlightPlan:
 
   def __repr__(self, Gama : bool = False) -> str:
     output : str = ""
+    Counter : int = 1
     if Gama:
       for Waypoint in self.ExpandedWaypoints:
-        output += str(Waypoint)
+        output += str(Counter).rjust(3) + " --> " + str(Waypoint)
+        Counter += 1
     else:
       for Waypoint in self.Waypoints:
-        output += str(Waypoint)
+        output += str(Counter).rjust(3) + " --> " + str(Waypoint)
+        Counter += 1
     return output
   
   def InsertWp(self, Wpt : FplWaypoint.FplWaypoint,
