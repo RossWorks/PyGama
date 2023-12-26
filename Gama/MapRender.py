@@ -1,4 +1,4 @@
-from . import FlightPlan as Fp, GeoSolver, FplWaypoint
+from . import FlightPlan as Fp, GeoSolver, FplWaypoint, GamaWaypoints
 import math, numpy as np
 
 CDScenter = [45.5, 8.7]
@@ -124,19 +124,21 @@ def RenderGamaFpl(GamaFpl : list[Fp.GamaWaypoints.GamaFplWaypoint],
   else:
     for index in range(0,FpSize-1):
       TmpSegment = GraphFpSegment()
+      EndOfArcPoint = GamaWaypoints.GamaFplWaypoint()
       TmpSegment.Color = 'm' if index == 0 else 'k'
       NextSegIsArc = (Fp.GamaWaypoints.ConnectionType[GamaFpl[index].NextSeg] == Fp.GamaWaypoints.ARC)
       TmpSegment.Intended = False
-      if NextSegIsArc:
-        pass
+      if Use3D:
+        print("calculating 3D great circle #" + str(index))
+        TmpSegment.Route = DrawGreatCircle(StartPoint = GamaFpl[index],
+                                           EndPoint   = GamaFpl[index+1])
       else:
-        if Use3D:
-          print("calculating 3D great circle #" + str(index))
-          TmpSegment.Route = DrawGreatCircle(StartPoint = GamaFpl[index],
-                                             EndPoint   = GamaFpl[index+1])
-        else:
-          print("calculating 2D straight line #" + str(index))
-          TmpSegment.Route = DrawPolarStraightLine(StartPoint = GamaFpl[index],
+        EndOfArcPoint = GamaFpl[index]
+        if NextSegIsArc:
+          print("Calclating 2D Arc line #" + str(index))
+        print("calculating 2D straight line #" + str(index))
+        if not GamaFpl[index].GapFollows:
+          TmpSegment.Route = DrawPolarStraightLine(StartPoint = EndOfArcPoint,
                                                    EndPoint   = GamaFpl[index+1])
       output.append(TmpSegment)
   return output

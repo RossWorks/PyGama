@@ -122,7 +122,7 @@ class FlightPlan:
                                                    Class = self.Waypoints[Index].Class,
                                                    Lat   = TmpListOfWp[4],
                                                    Lon   = TmpListOfWp[5],
-                                                   GapFollows=True,
+                                                   GapFollows=False,
                                                    NextConnect=0)
           PseudoCounter += 1
           self.ExpandedWaypoints.append(GamaPwp1)
