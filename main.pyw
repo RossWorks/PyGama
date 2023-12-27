@@ -1,6 +1,6 @@
 import Gama
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
@@ -60,7 +60,14 @@ for key in Gama.FlightPlan.FplWaypoint.TypeDict:
   TypeList.append(Gama.FlightPlan.FplWaypoint.TypeDict[key])
 
 def RemoveWpCallB():
-  Index2BeRemoved : int = int(TxtDeleteIndex.get())
+  try:
+    Index2BeRemoved = int(TxtDeleteIndex.get())
+  except ValueError as InvalidIntCast:
+    MyMessage = "Error from DELETE WP CALLBACK:\n"
+    for element in InvalidIntCast.args:
+      MyMessage += str(element) + "\n"
+    messagebox.showerror(title="DELETE WP ERROR", message=MyMessage)
+    return
   FlightPlan.RemoveWp(Index2BeRemoved)
   RefreshFpl()
 
@@ -78,12 +85,22 @@ def InsertWpCallB():
       MyClass = key
   if MyClass < 0:
     return
-  TmpWp = Gama.FlightPlan.FplWaypoint.FplWaypoint(Id= int(TxtInsertIndex.get()),
+  try:
+    TmpId = int(TxtInsertIndex.get())
+    TmpLat = float(TxtInsertLat.get())
+    TmpLon = float(TxtInsertLon.get())
+  except ValueError as InvalidIntCast:
+    MyMessage = "Error from INSERT WP CALLBACK:\n"
+    for element in InvalidIntCast.args:
+      MyMessage += str(element) + "\n"
+    messagebox.showerror(title="INSERT WP ERROR", message=MyMessage)
+    return
+  TmpWp = Gama.FlightPlan.FplWaypoint.FplWaypoint(Id= TmpId,
                                                   Name= TxtInsertName.get(),
                                                   Type=MyType,
                                                   Class=MyClass,
-                                                  Lat=float(TxtInsertLat.get()),
-                                                  Lon=float(TxtInsertLon.get()),
+                                                  Lat=TmpLat,
+                                                  Lon=TmpLon,
                                                   isFlyOver=WpIsFlyOver.get()==1)
   FlightPlan.InsertWp(Wpt=TmpWp, InsertInPos=int(TxtInsertIndex.get()))
   RefreshFpl()
@@ -94,6 +111,7 @@ home.title("PyGama")
 
 FplRepr = tk.StringVar(master = home)
 WpIsFlyOver = tk.IntVar(master=home)
+WpIndex  = tk.IntVar(master=home)
 
 FplGroup = tk.LabelFrame(master = home, text="GRAPHICAL AREA", font=DefaultFontTuple)
 FplGroup.grid(row=0,column=0, rowspan=2)
@@ -123,25 +141,25 @@ CdMap.axes.clear()
 FplWorkArea.add(Cdscreen.get_tk_widget(), text="CDS MAP")
 
 InsertWpGroup = tk.LabelFrame(master = home, text = "INSERT WP CMD", font=DefaultFontTuple)
-InsertWpGroup.grid(row=0, column=1)
-LblInsertIndex = tk.Label(master = InsertWpGroup, text="WPT INDEX:", font=DefaultFontTuple)
+InsertWpGroup.grid(row=0, column=1, sticky='e')
+LblInsertIndex = tk.Label(master = InsertWpGroup, text="INDEX:", font=DefaultFontTuple)
 LblInsertIndex.grid(row=0,column=0, sticky='w')
-LblInsertName = tk.Label(master = InsertWpGroup, text="WPT NAME:", font=DefaultFontTuple)
+LblInsertName = tk.Label(master = InsertWpGroup, text="NAME:", font=DefaultFontTuple)
 LblInsertName.grid(row=1,column=0, sticky='w')
-LblInsertType = tk.Label(master = InsertWpGroup, text="WPT TYPE:", font=DefaultFontTuple)
+LblInsertType = tk.Label(master = InsertWpGroup, text="TYPE:", font=DefaultFontTuple)
 LblInsertType.grid(row=2,column=0, sticky='w')
-LblInsertClass = tk.Label(master = InsertWpGroup, text="WPT CLASS:", font=DefaultFontTuple)
+LblInsertClass = tk.Label(master = InsertWpGroup, text="CLASS:", font=DefaultFontTuple)
 LblInsertClass.grid(row=3,column=0, sticky='w')
-LblInsertLat = tk.Label(master = InsertWpGroup, text="WPT LATITUDE:", font=DefaultFontTuple)
+LblInsertLat = tk.Label(master = InsertWpGroup, text="LATITUDE:", font=DefaultFontTuple)
 LblInsertLat.grid(row=4,column=0, sticky='w')
-LblInsertLon = tk.Label(master = InsertWpGroup, text="WPT LONGITUDE:", font=DefaultFontTuple)
+LblInsertLon = tk.Label(master = InsertWpGroup, text="LONGITUDE:", font=DefaultFontTuple)
 LblInsertLon.grid(row=5,column=0, sticky='w')
 
 CmdInsert = tk.Button(master = InsertWpGroup, text= "INSERT WP", font=DefaultFontTuple,
                       command=InsertWpCallB)
 CmdInsert.grid(row=7, column=0)
 
-TxtInsertIndex = tk.Entry(master= InsertWpGroup, width=8, font=NumericFontTuple)
+TxtInsertIndex = tk.Spinbox(master= InsertWpGroup, width=8, font=NumericFontTuple, from_=0, to=200,justify="right")
 TxtInsertIndex.grid(row=0,column=1)
 TxtInsertName = tk.Entry(master= InsertWpGroup, width=8, font=NumericFontTuple)
 TxtInsertName.grid(row=1,column=1)
@@ -155,9 +173,9 @@ TxtInsertLat = tk.Entry(master= InsertWpGroup, width=8, font=NumericFontTuple)
 TxtInsertLat.grid(row=4,column=1)
 TxtInsertLon = tk.Entry(master= InsertWpGroup, width=8, font=NumericFontTuple)
 TxtInsertLon.grid(row=5,column=1)
-ChkInsertFlyOv = tk.Checkbutton(master= InsertWpGroup, text="WPT is FLY OVER:",
+ChkInsertFlyOv = tk.Checkbutton(master= InsertWpGroup, text="FLY OVER",
                                 variable=WpIsFlyOver, font=NumericFontTuple)
-ChkInsertFlyOv.grid(row=6,column=0)
+ChkInsertFlyOv.grid(row=6,column=1)
 
 
 
