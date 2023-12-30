@@ -5,6 +5,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 DefaultFontTuple = ("B612 mono", 12, "normal")
+MenuFontTuple    = ("B612 mono",  9, "normal")
 NumericFontTuple = ("B612", 12, "normal")
 
 FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=45.5,
@@ -108,6 +109,24 @@ def InsertWpCallB():
 
 home = tk.Tk()
 home.title("PyGama")
+
+MainMenuBar = tk.Menu(master=home)
+FplMenu     = tk.Menu(master=MainMenuBar, tearoff=0)
+ProcMenu    = tk.Menu(master=MainMenuBar, tearoff=0)
+home.config(menu=MainMenuBar)
+
+MainMenuBar.add_cascade(label="ACTIVE FLIGHT PLAN",menu=FplMenu,font=MenuFontTuple)
+FplMenu.add_command(label="Deactivate FPL")
+FplMenu.add_command(label="D-TO...", state="disabled")
+FplMenu.add_command(label="Insert Waypoint...")
+FplMenu.add_command(label="Delete Waypoint...")
+FplMenu.add_command(label="SAR...", state="disabled")
+FplMenu.add_command(label="Save FPL", state="disabled")
+FplMenu.add_command(label="Load FPL", state="disabled")
+
+MainMenuBar.add_cascade(label="PROCEDURES",menu=ProcMenu,font=MenuFontTuple)
+ProcMenu.add_command(label="Load SID...", state="disabled")
+ProcMenu.add_command(label="Load STAR...", state="disabled")
 
 FplRepr = tk.StringVar(master = home)
 WpIsFlyOver = tk.IntVar(master=home)
