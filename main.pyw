@@ -23,10 +23,12 @@ def RefreshFpl():
 
   #3D Flight map
   World.clear()
+  RouteMesh = list()
   WorldMesh = Gama.MapRender.RenderWorld(LatRes=30,LonRes=30)
   World.plot_wireframe(WorldMesh['X'],WorldMesh['Y'],WorldMesh['Z'])
-  RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
-                                           Use3D=True)
+  if len(FlightPlan.Waypoints) > 1:
+    RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
+                                             Use3D=True)
   for segment in RouteMesh:
     marker = '--' if segment.Intended else ''
     World.plot(segment.Route[:,0],segment.Route[:,1], segment.Route[:,2],
@@ -34,8 +36,9 @@ def RefreshFpl():
     
   #2D Gama FPL
   RouteMesh.clear()
-  RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
-                                           Use3D=False)
+  if len(FlightPlan.Waypoints) > 1:
+    RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
+                                             Use3D=False)
   CdMap.clear()
   CdMap.set_theta_direction(-1)
   CdMap.set_theta_zero_location('N')
@@ -46,7 +49,9 @@ def RefreshFpl():
                color=segment.Color, marker=marker, markersize=2)
   
   #Names in 2D FPLN
-  GraphWps = Gama.MapRender.RenderWps(FlightPlan.Waypoints,is3D=False)
+  GraphWps = list()
+  if len(FlightPlan.Waypoints) > 1:
+    GraphWps = Gama.MapRender.RenderWps(FlightPlan.Waypoints,is3D=False)
   for point in GraphWps:
     CdMap.plot(point.Theta, point.Rho/1852, marker=point.Marker, color = point.Color)
     CdMap.text(point.Theta, point.Rho/1852, point.Name)
@@ -59,6 +64,13 @@ for key in Gama.FlightPlan.FplWaypoint.ClassDict:
 
 for key in Gama.FlightPlan.FplWaypoint.TypeDict:
   TypeList.append(Gama.FlightPlan.FplWaypoint.TypeDict[key])
+
+def DeleteFpl():
+  print("Deactivation of Active Flight Plan")
+  global FlightPlan
+  FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=45.5,
+                                          PposLon=8.7)
+  RefreshFpl()
 
 def RemoveWpCallB():
   try:
@@ -110,23 +122,34 @@ def InsertWpCallB():
 home = tk.Tk()
 home.title("PyGama")
 
+DeactFPL_Icon = tk.PhotoImage(file="./Resources/ItalyRoundel.png")
+DeactFPL_Icon = DeactFPL_Icon.subsample(x=20, y=20)
+
+
 MainMenuBar = tk.Menu(master=home)
 FplMenu     = tk.Menu(master=MainMenuBar, tearoff=0)
 ProcMenu    = tk.Menu(master=MainMenuBar, tearoff=0)
+ViewMenu    = tk.Menu(master=MainMenuBar, tearoff=0)
 home.config(menu=MainMenuBar)
 
 MainMenuBar.add_cascade(label="ACTIVE FLIGHT PLAN",menu=FplMenu,font=MenuFontTuple)
-FplMenu.add_command(label="Deactivate FPL")
-FplMenu.add_command(label="D-TO...", state="disabled")
-FplMenu.add_command(label="Insert Waypoint...")
-FplMenu.add_command(label="Delete Waypoint...")
-FplMenu.add_command(label="SAR...", state="disabled")
-FplMenu.add_command(label="Save FPL", state="disabled")
-FplMenu.add_command(label="Load FPL", state="disabled")
+FplMenu.add_command(label="Deactivate FPL", command=DeleteFpl, image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="D-TO...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Insert Waypoint...", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Delete Waypoint...", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="SAR...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Save FPL...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Load FPL...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
 
 MainMenuBar.add_cascade(label="PROCEDURES",menu=ProcMenu,font=MenuFontTuple)
-ProcMenu.add_command(label="Load SID...", state="disabled")
-ProcMenu.add_command(label="Load STAR...", state="disabled")
+ProcMenu.add_command(label="Load SID...", state="disabled", font=MenuFontTuple)
+ProcMenu.add_command(label="Load STAR...", state="disabled", font=MenuFontTuple)
+
+MainMenuBar.add_cascade(label="VIEW CONTROL",menu=ViewMenu, font=MenuFontTuple)
+ViewMenu.add_command(label="CENTER ON HELI",state="disabled")
+ViewMenu.add_command(label="CENTER ON WPT...",state="disabled")
+ViewMenu.add_command(label="CENTER ON OBJECT...",state="disabled")
+
 
 FplRepr = tk.StringVar(master = home)
 WpIsFlyOver = tk.IntVar(master=home)
