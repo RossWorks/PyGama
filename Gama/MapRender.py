@@ -111,6 +111,14 @@ def DrawGreatCircle(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
   output = GeoSolver.EARTH_RADIUS*(np.cos(t)*i+np.sin(t)*j)
   return output
 
+def DrawPolarArc(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
+                 EndPoint   : Fp.GamaWaypoints.GamaFplWaypoint) -> np.ndarray:
+  pre_output = np.zeros(shape=(100,2))
+  output = np.zeros(shape=(100,2))
+  Xorigin = StartPoint.ArcCenterX
+  Yorigin = StartPoint.ArcCenterY
+  return output
+
 def RenderGamaFpl(GamaFpl : list[Fp.GamaWaypoints.GamaFplWaypoint],
                   Use3D   : bool = True) -> list[GraphFpSegment]:
   print("Updating "+ ("3" if Use3D else "2") +"D Flight plan")
@@ -126,7 +134,7 @@ def RenderGamaFpl(GamaFpl : list[Fp.GamaWaypoints.GamaFplWaypoint],
       TmpSegment = GraphFpSegment()
       EndOfArcPoint = GamaWaypoints.GamaFplWaypoint()
       TmpSegment.Color = 'm' if index == 0 else 'k'
-      NextSegIsArc = (Fp.GamaWaypoints.ConnectionType[GamaFpl[index].NextSeg] == Fp.GamaWaypoints.ARC)
+      NextSegIsArc = (Fp.GamaWaypoints.ConnectionType[GamaFpl[index].ConicApp] == Fp.GamaWaypoints.ARC)
       TmpSegment.Intended = False
       if Use3D:
         print("calculating 3D great circle #" + str(index))
@@ -135,7 +143,7 @@ def RenderGamaFpl(GamaFpl : list[Fp.GamaWaypoints.GamaFplWaypoint],
       else:
         EndOfArcPoint = GamaFpl[index]
         if NextSegIsArc:
-          print("Calclating 2D Arc line #" + str(index))
+          print("Calclating 2D Arc #" + str(index))
         print("calculating 2D straight line #" + str(index))
         if not GamaFpl[index].GapFollows:
           TmpSegment.Route = DrawPolarStraightLine(StartPoint = EndOfArcPoint,

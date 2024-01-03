@@ -1,15 +1,44 @@
 import math, numpy as np
-TURN_RADIUS = 10*1852
+TURN_RADIUS = 4*1852
 
 EARTH_RADIUS = 6.371e6
 
+class FlyByTransition:
+  Pwp1_Lat     : float
+  Pwp1_Lon     : float
+  Pwp2_Lat     : float
+  Pwp2_Lon     : float
+  To_Lat       : float
+  To_Lon       : float
+  ArcRadius    : float
+  LeftTurn     : bool
+  TrkChange    : int
+  InboundTrk   : int
+
+  def __init__(self,
+               Pwp1_Lat   : float, Pwp1_Lon   : float,
+               Pwp2_Lat   : float, Pwp2_Lon   : float,
+               To_Lat     : float, To_Lon     : float,
+               ArcRadius  : float, TrkChange  : int,
+               LeftTurn   :  bool, InboundTrk : int) -> None:
+    self.Pwp1_Lat   = Pwp1_Lat
+    self.Pwp1_Lon   = Pwp1_Lon
+    self.Pwp2_Lat   = Pwp2_Lat
+    self.Pwp2_Lon   = Pwp2_Lon
+    self.To_Lat     = To_Lat
+    self.To_Lon     = To_Lon
+    self.ArcRadius  = ArcRadius
+    self.LeftTurn   = LeftTurn
+    self.TrkChange  = TrkChange
+    self.InboundTrk = InboundTrk
+
 def SolveFlyBy(LatFrom : float, LonFrom : float,
                LatTo   : float, LonTo   : float,
-               LatNext : float, LonNext : float) -> list[float]:
+               LatNext : float, LonNext : float) -> FlyByTransition:
   '''This funcion takes three points and computes three points:
     1st pseudo-Wp, TO Waypoint and a second pseudo-Wp
-    output comes as a list of floats carrying lat & lon of 
-    the points
+    output comes as a specialized class carrying lat & lon of 
+    the points along with other data
     the problem is a spherical triangle with:
     a = Turn radius side
     b = TO-arc_center side
@@ -19,13 +48,13 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
     gamma is not useful
     see https://en.wikipedia.org/wiki/Solution_of_triangles#A_side,_one_adjacent_angle_and_the_opposite_angle_given_(spherical_AAS)
     for solution used'''
+  print("computing Fly-By")
   FromVector = np.array(LatLon2XYZ(Lat=LatFrom,Lon=LonFrom),dtype=np.float64)
   ToVector   = np.array(LatLon2XYZ(Lat=LatTo,Lon=LonTo),dtype=np.float64)
   NextVector = np.array(LatLon2XYZ(Lat=LatNext,Lon=LonNext),dtype=np.float64)
   FromNormal = np.cross(ToVector,FromVector)
   NextNormal = np.cross(NextVector,ToVector)
-  TrackChange = np.arccos(abs(np.dot(FromNormal,NextNormal)/(np.linalg.norm(NextNormal)*np.linalg.norm(FromNormal))))
-  alpha = .5 * TrackChange
+  alpha = .5 * np.arccos(abs(np.dot(FromNormal,NextNormal)/(np.linalg.norm(NextNormal)*np.linalg.norm(FromNormal))))
   beta = np.radians(90)
   a = TURN_RADIUS / EARTH_RADIUS
   if True : #(a < np.radians(90)) and (alpha > beta):
@@ -47,8 +76,15 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
   C = EARTH_RADIUS*(np.cos(c)*i+np.sin(c)*j)
   Pwp1 = XYZ2LatLonHeight(X=B[0], Y=B[1], Z=B[2])
   Pwp2 = XYZ2LatLonHeight(X=C[0], Y=C[1], Z=C[2])
-  print("computing Fly-By")
-  return([Pwp1[0],Pwp1[1],LatTo, LonTo, Pwp2[0],Pwp2[1]])
+  TrackChange = np.pi - (alpha * 2)
+  n = np.cross(ToVector,FromVector)
+  ArcIsLeft = np.dot(n, NextVector) < 0
+  output = FlyByTransition(Pwp1_Lat=Pwp1[0], Pwp1_Lon=Pwp1[1],
+                           Pwp2_Lat=Pwp2[0], Pwp2_Lon=Pwp2[1],
+                           To_Lat=LatTo, To_Lon=LonTo, ArcRadius=a*EARTH_RADIUS,
+                           LeftTurn=ArcIsLeft, TrkChange=TrackChange,
+                           InboundTrk=0)
+  return output
   
 def LatLon2XY(Lat : float, Lon : float,
               OriginLat : float, OriginLon : float) -> list[float]:
