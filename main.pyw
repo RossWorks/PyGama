@@ -82,7 +82,14 @@ def RemoveWpCallB():
     messagebox.showerror(title="DELETE WP ERROR", message=MyMessage)
     return
   FlightPlan.RemoveWp(Index2BeRemoved)
+  DeleteWpPopUp.withdraw()
   RefreshFpl()
+
+def ShowInsertWpPopUp():
+  InsertWpPopUp.deiconify()
+
+def ShowDeleteWpPopUp():
+  DeleteWpPopUp.deiconify()
 
 def InsertWpCallB():
   '''This function calls for a new wp insertion in the active flightplan'''
@@ -116,11 +123,13 @@ def InsertWpCallB():
                                                   Lon=TmpLon,
                                                   isFlyOver=WpIsFlyOver.get()==1)
   FlightPlan.InsertWp(Wpt=TmpWp, InsertInPos=int(TxtInsertIndex.get()))
+  InsertWpPopUp.withdraw()
   RefreshFpl()
 
 
 home = tk.Tk()
 home.title("PyGama")
+home.geometry("1200x800")
 tk.Grid.rowconfigure(home,0, weight=1)
 tk.Grid.columnconfigure(home,0, weight=1)
 
@@ -137,8 +146,8 @@ home.config(menu=MainMenuBar)
 MainMenuBar.add_cascade(label="ACTIVE FLIGHT PLAN",menu=FplMenu,font=MenuFontTuple)
 FplMenu.add_command(label="Deactivate FPL", command=DeleteFpl, image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
 FplMenu.add_command(label="D-TO...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="Insert Waypoint...", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="Delete Waypoint...", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Insert Waypoint...", image=DeactFPL_Icon, compound="left", font=MenuFontTuple, command=ShowInsertWpPopUp)
+FplMenu.add_command(label="Delete Waypoint...", image=DeactFPL_Icon, compound="left", font=MenuFontTuple,command=ShowDeleteWpPopUp)
 FplMenu.add_command(label="SAR...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
 FplMenu.add_command(label="Save FPL...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
 FplMenu.add_command(label="Load FPL...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
@@ -186,7 +195,9 @@ CdMap.set_theta_direction(-1)
 CdMap.axes.clear()
 FplWorkArea.add(Cdscreen.get_tk_widget(), text="CDS MAP")
 
-InsertWpGroup = tk.LabelFrame(master = home, text = "INSERT WP CMD", font=DefaultFontTuple)
+InsertWpPopUp = tk.Toplevel(master=home)
+
+InsertWpGroup = tk.LabelFrame(master = InsertWpPopUp, text = "INSERT WP CMD", font=DefaultFontTuple)
 InsertWpGroup.grid(row=0, column=1, sticky='e')
 LblInsertIndex = tk.Label(master = InsertWpGroup, text="INDEX:", font=DefaultFontTuple)
 LblInsertIndex.grid(row=0,column=0, sticky='w')
@@ -223,17 +234,19 @@ ChkInsertFlyOv = tk.Checkbutton(master= InsertWpGroup, text="FLY OVER",
                                 variable=WpIsFlyOver, font=NumericFontTuple)
 ChkInsertFlyOv.grid(row=6,column=1)
 
+InsertWpPopUp.withdraw()
 
-
-DeleteWpGroup = tk.LabelFrame(master = home, text = "DELETE WP CMD", font=DefaultFontTuple)
+DeleteWpPopUp = tk.Toplevel(master=home)
+DeleteWpGroup = tk.LabelFrame(master = DeleteWpPopUp, text = "DELETE WP CMD", font=DefaultFontTuple)
 DeleteWpGroup.grid(row=1, column=1)
 LblDeleteIndex = tk.Label(master= DeleteWpGroup, text="DELETE WP INDEX:", font=DefaultFontTuple)
 LblDeleteIndex.grid(row=0,column=0)
 CmdDelete = tk.Button(master = DeleteWpGroup, text= "DELETE WP",
                       command=RemoveWpCallB, font=DefaultFontTuple)
 CmdDelete.grid(row=1, column=0)
-TxtDeleteIndex = tk.Entry(master= DeleteWpGroup, width=3, font=DefaultFontTuple)
+TxtDeleteIndex = tk.Spinbox(master= DeleteWpGroup, width=3, font=DefaultFontTuple, from_=0, to=200,justify="right")
 TxtDeleteIndex.grid(row=0,column=1)
+DeleteWpPopUp.withdraw()
 
 RefreshFpl()
 
