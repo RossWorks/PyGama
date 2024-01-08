@@ -71,7 +71,8 @@ class FlightPlan:
                                                 Lat = self.Waypoints[0].Lat,
                                                 Lon = self.Waypoints[0].Lon,
                                                 GapFollows=True,
-                                                NextConnect=0)
+                                                ConicApp=False,
+                                                isGraphical=True)
       self.ExpandedWaypoints.append(NewGamaWp)
       return
     for Index in range(0, len(self.Waypoints)):
@@ -83,11 +84,11 @@ class FlightPlan:
                                                   Lat = self.Waypoints[Index].Lat,
                                                   Lon = self.Waypoints[Index].Lon,
                                                   GapFollows=True,
-                                                  NextConnect=0)
+                                                  ConicApp=0)
         self.ExpandedWaypoints.append(NewGamaWp)
       else:
         if (not self.Waypoints[Index].FlyOver) and (Index > 0) and (Index < (len(self.Waypoints)-1)):
-          TmpListOfWp = GeoSolver.SolveFlyBy(LatFrom = self.Waypoints[Index-1].Lat,
+          FlyByData   = GeoSolver.SolveFlyBy(LatFrom = self.Waypoints[Index-1].Lat,
                                              LonFrom = self.Waypoints[Index-1].Lon,
                                              LatTo   = self.Waypoints[Index].Lat,
                                              LonTo   = self.Waypoints[Index].Lon,
@@ -98,35 +99,44 @@ class FlightPlan:
                                                    Name  = "Pwp" + str(PseudoCounter),
                                                    Type  = self.Waypoints[Index].Type,
                                                    Class = self.Waypoints[Index].Class,
-                                                   Lat   = TmpListOfWp[0],
-                                                   Lon   = TmpListOfWp[1],
+                                                   Lat   = FlyByData.Pwp1_Lat,
+                                                   Lon   = FlyByData.Pwp1_Lon,
                                                    GapFollows=True,
-                                                   NextConnect=0)
+                                                   ConicApp=False,
+                                                   isGraphical=False)
           GamaPwp1_2=GamaWaypoints.GamaFplWaypoint(Id=1,
-                                                   Name  = "Pwp" + str(PseudoCounter),
-                                                   Type  = self.Waypoints[Index].Type,
-                                                   Class = self.Waypoints[Index].Class,
-                                                   Lat   = TmpListOfWp[0],
-                                                   Lon   = TmpListOfWp[1],
-                                                   GapFollows=False,
-                                                   NextConnect=0)
+                                                   Name          = "Pwp" + str(PseudoCounter),
+                                                   Type          = 0,
+                                                   Class         = 0,
+                                                   Lat           = FlyByData.Pwp1_Lat,
+                                                   Lon           = FlyByData.Pwp1_Lon,
+                                                   GapFollows    = False,
+                                                   ConicApp      = True,
+                                                   isGraphical   = False,
+                                                   ArcRadius     = FlyByData.ArcRadius,
+                                                   ArcIsLeftHand = FlyByData.LeftTurn,
+                                                   TrackChange   = FlyByData.TrkChange,
+                                                   ArcCenterLat  = FlyByData.ArcCenterLat,
+                                                   ArcCenterLon  = FlyByData.ArcCenterLon)
           PseudoCounter += 1
           GamaToWp = GamaWaypoints.GamaFplWaypoint(Id=1,
-                                                   Name  = self.Waypoints[Index].Name ,
+                                                   Name  = self.Waypoints[Index].Name,
                                                    Type  = self.Waypoints[Index].Type,
                                                    Class = self.Waypoints[Index].Class,
-                                                   Lat   = TmpListOfWp[2],
-                                                   Lon   = TmpListOfWp[3],
+                                                   Lat   = FlyByData.To_Lat,
+                                                   Lon   = FlyByData.To_Lon,
                                                    GapFollows=True,
-                                                   NextConnect=0)
+                                                   ConicApp=False,
+                                                   isGraphical=True)
           GamaPwp2 = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                    Name  = "Pwp" + str(PseudoCounter),
-                                                   Type  = self.Waypoints[Index].Type,
-                                                   Class = self.Waypoints[Index].Class,
-                                                   Lat   = TmpListOfWp[4],
-                                                   Lon   = TmpListOfWp[5],
+                                                   Type  = 0,
+                                                   Class = 0,
+                                                   Lat   = FlyByData.Pwp2_Lat,
+                                                   Lon   = FlyByData.Pwp2_Lon,
                                                    GapFollows=False,
-                                                   NextConnect=0)
+                                                   ConicApp=False,
+                                                   isGraphical=False)
           PseudoCounter += 1
           self.ExpandedWaypoints.append(GamaPwp1)
           self.ExpandedWaypoints.append(GamaToWp)
@@ -141,5 +151,6 @@ class FlightPlan:
                                                   Lat = self.Waypoints[Index].Lat,
                                                   Lon = self.Waypoints[Index].Lon,
                                                   GapFollows=False,
-                                                  NextConnect=0)
+                                                  ConicApp=0,
+                                                  isGraphical=True)
           self.ExpandedWaypoints.append(NewGamaWp)
