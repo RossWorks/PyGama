@@ -113,10 +113,25 @@ def DrawGreatCircle(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
 
 def DrawPolarArc(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
                  EndPoint   : Fp.GamaWaypoints.GamaFplWaypoint) -> np.ndarray:
-  pre_output = np.zeros(shape=(100,2))
   output = np.zeros(shape=(100,2))
-  Xorigin = StartPoint.ArcCenterX
-  Yorigin = StartPoint.ArcCenterY
+  Pwp1Vector = np.array(GeoSolver.LatLon2XY(Lat=StartPoint.Lat, Lon= StartPoint.Lon,
+                                            OriginLat=CDScenter[0], OriginLon=CDScenter[1]))
+  Pwp1Vector = Pwp1Vector.reshape((2,1))
+  ArcCenter = GeoSolver.LatLon2XY(Lat=StartPoint.ArcCenterLat, Lon= StartPoint.ArcCenterLon,
+                                  OriginLat=CDScenter[0], OriginLon=CDScenter[1])
+  ArcCenterVector = np.array(ArcCenter).reshape((2,1))
+  Angle = np.linspace(start=0,stop=np.deg2rad(StartPoint.TrackChange), num=100).reshape((100,1))
+  Center2PwpVector = Pwp1Vector - ArcCenterVector
+  theta = np.pi * (.5 if StartPoint.ArcIsLeftHand else -.5) #behaviour is inverted from Fly-By computation because a rot matrix follow anticlockwise angle rule
+  rot_matrix = np.matrix([[np.cos(theta), -np.sin(theta)],
+                          [np.sin(theta),  np.cos(theta)]])
+  otherVector = rot_matrix @ Center2PwpVector
+  for step in range(0,len(Angle)):
+    Dummy = ArcCenterVector + (Center2PwpVector * np.cos(Angle[step]) + otherVector * np.sin(Angle[step]))
+    output_theta    = np.arctan2(Dummy[0],Dummy[1])
+    output_rho      = np.sqrt(np.power(Dummy[0],2)+np.power(Dummy[1],2))
+    output[step, 0] = output_theta
+    output[step, 1] = output_rho
   return output
 
 def RenderGamaFpl(GamaFpl : list[Fp.GamaWaypoints.GamaFplWaypoint],
@@ -134,21 +149,28 @@ def RenderGamaFpl(GamaFpl : list[Fp.GamaWaypoints.GamaFplWaypoint],
       TmpSegment = GraphFpSegment()
       EndOfArcPoint = GamaWaypoints.GamaFplWaypoint()
       TmpSegment.Color = 'm' if index == 0 else 'k'
-      NextSegIsArc = (Fp.GamaWaypoints.ConnectionType[GamaFpl[index].ConicApp] == Fp.GamaWaypoints.ARC)
       TmpSegment.Intended = False
       if Use3D:
-        print("calculating 3D great circle #" + str(index))
+        print("calculating 3D great circle from " + str(GamaFpl[index].Name) + " to " + str(GamaFpl[index+1].Name))
         TmpSegment.Route = DrawGreatCircle(StartPoint = GamaFpl[index],
                                            EndPoint   = GamaFpl[index+1])
+        output.append(TmpSegment)
       else:
-        EndOfArcPoint = GamaFpl[index]
-        if NextSegIsArc:
-          print("Calclating 2D Arc #" + str(index))
-        print("calculating 2D straight line #" + str(index))
-        if not GamaFpl[index].GapFollows:
-          TmpSegment.Route = DrawPolarStraightLine(StartPoint = EndOfArcPoint,
+        if GamaFpl[index].ConicApp:
+          print("Calculating 2D Arc from " + str(GamaFpl[index].Name) + " to " + str(GamaFpl[index+1].Name))
+          TmpSegment.Route = DrawPolarArc(StartPoint = GamaFpl[index],
+                                          EndPoint   = EndOfArcPoint)
+          output.append(TmpSegment)
+          if not GamaFpl[index].GapFollows:
+            continue
+            print("calculating 2D straight line from " + str(GamaFpl[index].Name) + " to " + str(GamaFpl[index+1].Name))
+            TmpSegment.Route = DrawPolarStraightLine(StartPoint = EndOfArcPoint,
                                                    EndPoint   = GamaFpl[index+1])
-      output.append(TmpSegment)
+        elif not GamaFpl[index].GapFollows:
+          print("calculating 2D straight line from " + str(GamaFpl[index].Name) + " to " + str(GamaFpl[index+1].Name))
+          TmpSegment.Route = DrawPolarStraightLine(StartPoint = GamaFpl[index],
+                                                   EndPoint   = GamaFpl[index+1])
+          output.append(TmpSegment)
   return output
 
 def RenderWps(WpList : list[FplWaypoint.FplWaypoint],

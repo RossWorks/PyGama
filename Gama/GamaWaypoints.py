@@ -27,23 +27,23 @@ WpDisplay : dict[bool : str] = {False : NOT_GRAPHICAL,
                                 True  : GRAPHICAL}
 
 class GamaFplWaypoint:
-  Id            : int
-  Name          : str
-  Type          : int
-  Class         : int
-  Lat           : float
-  Lon           : float
-  GapFollows    : bool
-  ConicApp      : bool
-  ArcRadius     : float
-  ArcCenterX    : float
-  ArcCenterY    : float
-  TrackChange   : int
-  isGraphical   : bool
-  InboundCrs    : int
-  ArcIsLeftHand : bool
-  LegIntended   : bool
-  ArcIntended   : bool
+  Id            : int    # unit: N/A
+  Name          : str    # unit: N/A
+  Type          : int    # unit: N/A
+  Class         : int    # unit: N/A
+  Lat           : float  # unit: degrees
+  Lon           : float  # unit: degrees
+  GapFollows    : bool   # unit: N/A
+  ConicApp      : bool   # unit: N/A
+  ArcRadius     : float  # unit: m
+  ArcCenterLat  : float  # unit: degrees
+  ArcCenterLon  : float  # unit: degrees
+  TrackChange   : int    # unit: degrees
+  isGraphical   : bool   # unit: N/A
+  InboundCrs    : int    # unit: degrees
+  ArcIsLeftHand : bool   # unit: N/A
+  LegIntended   : bool   # unit: N/A
+  ArcIntended   : bool   # unit: N/A
 
   def __init__(self, Id : int = 0,
                Name : str = "******",
@@ -54,8 +54,8 @@ class GamaFplWaypoint:
                GapFollows : bool = False,
                ConicApp : bool = False,
                ArcRadius : float = 0.0,
-               ArcCenterX : float = 0.0,
-               ArcCenterY : float = 0.0,
+               ArcCenterLat : float = 0.0,
+               ArcCenterLon : float = 0.0,
                TrackChange : int = 0,
                isGraphical : bool = False,
                InboundCrs : int = 0,
@@ -71,8 +71,8 @@ class GamaFplWaypoint:
     self.GapFollows    = GapFollows
     self.ConicApp      = ConicApp
     self.ArcRadius     = ArcRadius
-    self.ArcCenterX    = ArcCenterX
-    self.ArcCenterY    = ArcCenterY
+    self.ArcCenterLat  = ArcCenterLat
+    self.ArcCenterLon  = ArcCenterLon
     self.TrackChange   = TrackChange
     self.isGraphical   = isGraphical
     self.InboundCrs    = InboundCrs
@@ -89,9 +89,9 @@ class GamaFplWaypoint:
     output += "{:6.6f}".format(self.Lon).rjust(9) + ";"
     output += "{:2.1f}".format(self.ArcRadius).rjust(8) + ";"
     output += str(self.InboundCrs).rjust(4) + ";"
-    output += str(int(math.degrees(self.TrackChange))).rjust(4) + ";"
+    output += str(self.TrackChange).rjust(4) + ";"
     output += (STRAIGHT if self.ConicApp == 0 else ARC).rjust(9) + ";"
-    output += TurnDirection[self.ArcIsLeftHand] + ";"
+    output += TurnDirection[self.ArcIsLeftHand].rjust(5) + ";"
     output += ("LEG " + SegmentDisplay[self.LegIntended]).rjust(12) + ";"
     output += ("CONIC " + SegmentDisplay[self.LegIntended]).rjust(12) + ";"
     output += ("GAP" if self.GapFollows else "NO GAP").rjust(6) + ";"

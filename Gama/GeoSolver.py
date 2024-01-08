@@ -14,13 +14,16 @@ class FlyByTransition:
   LeftTurn     : bool
   TrkChange    : int
   InboundTrk   : int
+  ArcCenterLat : float
+  ArcCenterLon : float
 
   def __init__(self,
                Pwp1_Lat   : float, Pwp1_Lon   : float,
                Pwp2_Lat   : float, Pwp2_Lon   : float,
                To_Lat     : float, To_Lon     : float,
                ArcRadius  : float, TrkChange  : int,
-               LeftTurn   :  bool, InboundTrk : int) -> None:
+               LeftTurn   :  bool, InboundTrk : int,
+               ArcCenterLat : float, ArcCenterLon : float) -> None:
     self.Pwp1_Lat   = Pwp1_Lat
     self.Pwp1_Lon   = Pwp1_Lon
     self.Pwp2_Lat   = Pwp2_Lat
@@ -31,6 +34,8 @@ class FlyByTransition:
     self.LeftTurn   = LeftTurn
     self.TrkChange  = TrkChange
     self.InboundTrk = InboundTrk
+    self.ArcCenterLat = ArcCenterLat
+    self.ArcCenterLon = ArcCenterLon
 
 def SolveFlyBy(LatFrom : float, LonFrom : float,
                LatTo   : float, LonTo   : float,
@@ -76,14 +81,24 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
   C = EARTH_RADIUS*(np.cos(c)*i+np.sin(c)*j)
   Pwp1 = XYZ2LatLonHeight(X=B[0], Y=B[1], Z=B[2])
   Pwp2 = XYZ2LatLonHeight(X=C[0], Y=C[1], Z=C[2])
-  TrackChange = np.pi - (alpha * 2)
   n = np.cross(ToVector,FromVector)
   ArcIsLeft = np.dot(n, NextVector) < 0
+  TrackChange = int(np.rad2deg(np.pi - (alpha * 2)))
+  IncomingTrack = GreatCircleFinalAz(LatFrom=LatFrom, LonFrom=LonFrom, 
+                                 LatTo=Pwp1[0], LonTo=Pwp1[1])
+  IncomingTrack = int(IncomingTrack)
+  print("Incoming track = " + str(IncomingTrack) + "°")
+  print("Track change   = " + str(TrackChange) + "°")
+  Faz_to_center = IncomingTrack + 90 * (-1 if ArcIsLeft else 1)
+  ArcCenter = GreatCircleDirect(LatFrom=Pwp1[0], LonFrom=Pwp1[1],
+                                Faz=Faz_to_center,
+                                Distance= a*EARTH_RADIUS)
   output = FlyByTransition(Pwp1_Lat=Pwp1[0], Pwp1_Lon=Pwp1[1],
                            Pwp2_Lat=Pwp2[0], Pwp2_Lon=Pwp2[1],
                            To_Lat=LatTo, To_Lon=LonTo, ArcRadius=a*EARTH_RADIUS,
                            LeftTurn=ArcIsLeft, TrkChange=TrackChange,
-                           InboundTrk=0)
+                           InboundTrk=IncomingTrack, ArcCenterLat=ArcCenter[0],
+                           ArcCenterLon=ArcCenter[1])
   return output
   
 def LatLon2XY(Lat : float, Lon : float,
@@ -135,3 +150,58 @@ def XY2ThetaRho(X : float, Y : float) -> list[float]:
   output[0] = math.atan2(X,Y)
   output[1] = math.sqrt(math.pow(X,2) + math.pow(Y,2))
   return output
+
+def GreatCircleDistance(LatFrom : float, LonFrom : float,
+                        LatTo   : float, LonTo   : float) -> float:
+  sin_phi1 = math.sin(math.radians(LatFrom))
+  cos_phi1 = math.cos(math.radians(LatFrom))
+  sin_phi2 = math.sin(math.radians(LatTo))
+  cos_phi2 = math.cos(math.radians(LatTo))
+  delta_lambda = math.radians(LonTo - LonFrom)
+  delta_sigma  = math.acos(sin_phi1*sin_phi2 + cos_phi1*cos_phi2*delta_lambda)
+  distance = EARTH_RADIUS * delta_sigma
+  return distance
+
+def GreatCircleInitAz(LatFrom : float, LonFrom : float,
+                      LatTo   : float, LonTo   : float) -> float:
+  sin_phi1 = math.sin(math.radians(LatFrom))
+  cos_phi1 = math.cos(math.radians(LatFrom))
+  sin_phi2 = math.sin(math.radians(LatTo))
+  cos_phi2 = math.cos(math.radians(LatTo))
+  sin_delta_lambda = math.sin(math.radians(LonTo - LonFrom))
+  cos_delta_lambda = math.cos(math.radians(LonTo - LonFrom))
+  N = (cos_phi2 * sin_delta_lambda)
+  D = (cos_phi1*sin_phi2 - sin_phi1*cos_phi2*cos_delta_lambda)
+  return math.atan2(N,D)
+
+def GreatCircleFinalAz(LatFrom : float, LonFrom : float,
+                       LatTo   : float, LonTo   : float) -> float:
+  sin_phi1 = math.sin(math.radians(LatFrom))
+  cos_phi1 = math.cos(math.radians(LatFrom))
+  sin_phi2 = math.sin(math.radians(LatTo))
+  cos_phi2 = math.cos(math.radians(LatTo))
+  sin_delta_lambda = math.sin(math.radians(LonTo - LonFrom))
+  cos_delta_lambda = math.cos(math.radians(LonTo - LonFrom))
+  N = (cos_phi1 * sin_delta_lambda)
+  D = (-1*cos_phi2*sin_phi1 + sin_phi2*cos_phi1*cos_delta_lambda)
+  return math.degrees(math.atan2(N,D))
+
+def GreatCircleDirect(LatFrom : float, LonFrom : float,
+                      Faz     : float, Distance: float) -> list[float]:
+  sin_phi1 = math.sin(math.radians(LatFrom))
+  cos_phi1 = math.cos(math.radians(LatFrom))
+  sigma_12 = Distance / EARTH_RADIUS
+  sin_sigma_12 = math.sin(sigma_12)
+  cos_sigma_12 = math.cos(sigma_12)
+  cos_faz = math.cos(math.radians(Faz))
+  sin_faz = math.sin(math.radians(Faz))
+  N = sin_phi1*cos_sigma_12 + cos_phi1*sin_sigma_12*cos_faz
+  D = math.pow(cos_phi1*cos_sigma_12 - sin_phi1*sin_sigma_12*cos_faz,2)
+  D+= math.pow(sin_sigma_12*sin_faz,2)
+  D = math.sqrt(D)
+  LatDest = math.degrees(math.atan2(N,D))
+  N = sin_sigma_12*sin_faz
+  D = cos_phi1*cos_sigma_12 - sin_phi1*sin_sigma_12*cos_faz
+  delta_lambda = math.atan2(N,D)
+  LonDest = LonFrom + math.degrees(delta_lambda)
+  return [LatDest, LonDest]
