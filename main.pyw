@@ -4,9 +4,9 @@ from tkinter import ttk, messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-DefaultFontTuple = ("B612 mono", 12, "normal")
+DefaultFontTuple = ("B612 mono", 10, "normal")
 MenuFontTuple    = ("B612 mono",  9, "normal")
-NumericFontTuple = ("B612", 12, "normal")
+NumericFontTuple = ("B612", 10, "normal")
 
 FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=45.5,
                                         PposLon=8.7)
@@ -133,9 +133,17 @@ home.geometry("1200x800")
 tk.Grid.rowconfigure(home,0, weight=1)
 tk.Grid.columnconfigure(home,0, weight=1)
 
-DeactFPL_Icon = tk.PhotoImage(file="./Resources/ItalyRoundel.png")
-DeactFPL_Icon = DeactFPL_Icon.subsample(x=20, y=20)
+DeactFPL_Icon = tk.PhotoImage(file="./Resources/DeactFpl.png")
+InsertWp_Icon = tk.PhotoImage(file="./Resources/InsertWp.png")
+DeleteWp_Icon = tk.PhotoImage(file="./Resources/DeleteWp.png")
+SaveFpl_Icon  = tk.PhotoImage(file="./Resources/SaveFpl.png")
+LoadFpl_Icon  = tk.PhotoImage(file="./Resources/LoadFpl.png")
+DTO_Icon      = tk.PhotoImage(file="./Resources/D-TO.png")
+SAR_Icon      = tk.PhotoImage(file="./Resources/SAR.png")
 
+FplRepr = tk.StringVar(master = home)
+WpIsFlyOver = tk.IntVar(master=home)
+WpIndex  = tk.IntVar(master=home)
 
 MainMenuBar = tk.Menu(master=home)
 FplMenu     = tk.Menu(master=MainMenuBar, tearoff=0)
@@ -145,12 +153,12 @@ home.config(menu=MainMenuBar)
 
 MainMenuBar.add_cascade(label="ACTIVE FLIGHT PLAN",menu=FplMenu,font=MenuFontTuple)
 FplMenu.add_command(label="Deactivate FPL", command=DeleteFpl, image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="D-TO...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="Insert Waypoint...", image=DeactFPL_Icon, compound="left", font=MenuFontTuple, command=ShowInsertWpPopUp)
-FplMenu.add_command(label="Delete Waypoint...", image=DeactFPL_Icon, compound="left", font=MenuFontTuple,command=ShowDeleteWpPopUp)
-FplMenu.add_command(label="SAR...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="Save FPL...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="Load FPL...", state="disabled", image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Direct To...", state="disabled", image=DTO_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Insert Waypoint...", image=InsertWp_Icon, compound="left", font=MenuFontTuple, command=ShowInsertWpPopUp)
+FplMenu.add_command(label="Delete Waypoint...", image=DeleteWp_Icon, compound="left", font=MenuFontTuple,command=ShowDeleteWpPopUp)
+FplMenu.add_command(label="SAR...", state="disabled", image=SAR_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Save FPL...", state="disabled", image=SaveFpl_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Load FPL...", state="disabled", image=LoadFpl_Icon, compound="left", font=MenuFontTuple)
 
 MainMenuBar.add_cascade(label="PROCEDURES",menu=ProcMenu,font=MenuFontTuple)
 ProcMenu.add_command(label="Load SID...", state="disabled", font=MenuFontTuple)
@@ -160,11 +168,6 @@ MainMenuBar.add_cascade(label="VIEW CONTROL",menu=ViewMenu, font=MenuFontTuple)
 ViewMenu.add_command(label="CENTER ON HELI",state="disabled")
 ViewMenu.add_command(label="CENTER ON WPT...",state="disabled")
 ViewMenu.add_command(label="CENTER ON OBJECT...",state="disabled")
-
-
-FplRepr = tk.StringVar(master = home)
-WpIsFlyOver = tk.IntVar(master=home)
-WpIndex  = tk.IntVar(master=home)
 
 FplGroup = tk.LabelFrame(master = home, text="GRAPHICAL AREA", font=DefaultFontTuple)
 FplGroup.columnconfigure(index= 0, weight=1)
