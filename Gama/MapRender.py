@@ -1,5 +1,5 @@
 from . import FlightPlan as Fp, GeoSolver, FplWaypoint, GamaWaypoints
-import math, numpy as np
+import numpy as np
 
 CDScenter = [45.5, 8.7]
 
@@ -21,6 +21,14 @@ Type_color_dict : dict[str:str] = {"APT" : "cyan",
                                    "VHF" : "green",
                                    "WPT" : "pink"}
 
+def SetCdsCenter(Lat_d : float, Lon_d : float) -> bool:
+  global CDScenter
+  if (-90.0 > Lat_d and Lat_d > 90.0):
+    return False
+  if (-180.0 > Lon_d and Lon_d > 180.0):
+    return False
+  CDScenter = [Lat_d, Lon_d]
+  return True
 
 class GraphFpSegment:
   Intended : bool

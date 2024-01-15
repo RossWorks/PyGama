@@ -126,6 +126,21 @@ def InsertWpCallB():
   InsertWpPopUp.withdraw()
   RefreshFpl()
 
+def ShowSetCdsCenterPopUp():
+  SetCdsCenterPopUp.deiconify()
+
+def SetCdsCenter():
+  Wp_index = int(TxtCenterIndex.get()) - 1
+  try:
+    NewLat  = FlightPlan.Waypoints[Wp_index].Lat
+    NewLon  = FlightPlan.Waypoints[Wp_index].Lon
+    Success = Gama.MapRender.SetCdsCenter(Lat_d=NewLat, Lon_d=NewLon)
+  except IndexError:
+    Success = False
+  if Success:
+    RefreshFpl()
+  SetCdsCenterPopUp.withdraw()
+
 
 home = tk.Tk()
 home.title("PyGama")
@@ -166,7 +181,7 @@ ProcMenu.add_command(label="Load STAR...", state="disabled", font=MenuFontTuple)
 
 MainMenuBar.add_cascade(label="VIEW CONTROL",menu=ViewMenu, font=MenuFontTuple)
 ViewMenu.add_command(label="CENTER ON HELI",state="disabled")
-ViewMenu.add_command(label="CENTER ON WPT...",state="disabled")
+ViewMenu.add_command(label="CENTER ON WPT...",state="normal",command=ShowSetCdsCenterPopUp)
 ViewMenu.add_command(label="CENTER ON OBJECT...",state="disabled")
 
 FplGroup = tk.LabelFrame(master = home, text="GRAPHICAL AREA", font=DefaultFontTuple)
@@ -199,7 +214,7 @@ CdMap.axes.clear()
 FplWorkArea.add(Cdscreen.get_tk_widget(), text="CDS MAP")
 
 InsertWpPopUp = tk.Toplevel(master=home)
-
+InsertWpPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)
 InsertWpGroup = tk.LabelFrame(master = InsertWpPopUp, text = "INSERT WP CMD", font=DefaultFontTuple)
 InsertWpGroup.grid(row=0, column=1, sticky='e')
 LblInsertIndex = tk.Label(master = InsertWpGroup, text="INDEX:", font=DefaultFontTuple)
@@ -240,6 +255,7 @@ ChkInsertFlyOv.grid(row=6,column=1)
 InsertWpPopUp.withdraw()
 
 DeleteWpPopUp = tk.Toplevel(master=home)
+DeleteWpPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)
 DeleteWpGroup = tk.LabelFrame(master = DeleteWpPopUp, text = "DELETE WP CMD", font=DefaultFontTuple)
 DeleteWpGroup.grid(row=1, column=1)
 LblDeleteIndex = tk.Label(master= DeleteWpGroup, text="DELETE WP INDEX:", font=DefaultFontTuple)
@@ -250,6 +266,19 @@ CmdDelete.grid(row=1, column=0)
 TxtDeleteIndex = tk.Spinbox(master= DeleteWpGroup, width=3, font=DefaultFontTuple, from_=0, to=200,justify="right")
 TxtDeleteIndex.grid(row=0,column=1)
 DeleteWpPopUp.withdraw()
+
+SetCdsCenterPopUp = tk.Toplevel(master=home)
+SetCdsCenterGroup = tk.LabelFrame(master = SetCdsCenterPopUp, text = "SET CDS CENTER", font=DefaultFontTuple)
+SetCdsCenterGroup.grid(row=1, column=1)
+SetCdsCenterIndex = tk.Label(master= SetCdsCenterPopUp, text="WP INDEX:", font=DefaultFontTuple)
+SetCdsCenterIndex.grid(row=0,column=0)
+CmdSetCdsCenter = tk.Button(master = SetCdsCenterPopUp, text= "SET CENTER",
+                      command=SetCdsCenter, font=DefaultFontTuple)
+CmdSetCdsCenter.grid(row=1, column=0)
+TxtCenterIndex = tk.Spinbox(master= SetCdsCenterPopUp, width=3, font=DefaultFontTuple, from_=1, to=200,justify="right")
+TxtCenterIndex.grid(row=0,column=1)
+SetCdsCenterPopUp.withdraw()
+
 
 RefreshFpl()
 
