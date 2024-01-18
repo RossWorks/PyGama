@@ -1,6 +1,6 @@
 import math, numpy as np
 TURN_RADIUS = 4*1852
-
+FLYBY_THRESHOLD = 15
 EARTH_RADIUS = 6.371e6
 
 class FlyByTransition:
@@ -16,6 +16,7 @@ class FlyByTransition:
   InboundTrk   : int
   ArcCenterLat : float
   ArcCenterLon : float
+  Valid        : bool
 
   def __init__(self,
                Pwp1_Lat   : float, Pwp1_Lon   : float,
@@ -36,6 +37,7 @@ class FlyByTransition:
     self.InboundTrk = InboundTrk
     self.ArcCenterLat = ArcCenterLat
     self.ArcCenterLon = ArcCenterLon
+    self.Valid      = True
 
 def SolveFlyBy(LatFrom : float, LonFrom : float,
                LatTo   : float, LonTo   : float,
@@ -68,7 +70,7 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
     b = np.pi - np.arcsin((np.sin(a)*np.sin(beta))/(np.sin(alpha)))
   sin_12_alpha_p_beta = np.sin(.5*(alpha+beta))
   sin_12_alpha_m_beta = np.sin(.5*(alpha-beta))
-  c = 2*np.arctan(np.tan(.5*(a-b) * sin_12_alpha_p_beta/sin_12_alpha_m_beta))
+  c = 2*np.arctan(np.tan(.5*(a-b)) * sin_12_alpha_p_beta/sin_12_alpha_m_beta)
   n = np.cross(FromVector,ToVector)
   n = n/np.sqrt(np.dot(n,n))
   i = ToVector/np.sqrt(np.dot(ToVector,ToVector))
@@ -89,6 +91,9 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
   IncomingTrack = int(IncomingTrack)
   print("Incoming track = " + str(IncomingTrack) + "°")
   print("Track change   = " + str(TrackChange) + "°")
+  if TrackChange < FLYBY_THRESHOLD:
+    print("Invalidating Fly-by due to track change < " + str(FLYBY_THRESHOLD) + "°")
+    output.Valid = False
   Faz_to_center = IncomingTrack + 90 * (-1 if ArcIsLeft else 1)
   ArcCenter = GreatCircleDirect(LatFrom=Pwp1[0], LonFrom=Pwp1[1],
                                 Faz=Faz_to_center,
@@ -184,7 +189,12 @@ def GreatCircleFinalAz(LatFrom : float, LonFrom : float,
   cos_delta_lambda = math.cos(math.radians(LonTo - LonFrom))
   N = (cos_phi1 * sin_delta_lambda)
   D = (-1*cos_phi2*sin_phi1 + sin_phi2*cos_phi1*cos_delta_lambda)
-  return math.degrees(math.atan2(N,D))
+  T = math.degrees(math.atan2(N,D))
+  if math.isnan(T):
+    print("T = " + str(T))
+    print("N = " + str(N))
+    print("D = " + str(D))
+  return T
 
 def GreatCircleDirect(LatFrom : float, LonFrom : float,
                       Faz     : float, Distance: float) -> list[float]:

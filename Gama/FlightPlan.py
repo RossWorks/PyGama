@@ -138,10 +138,12 @@ class FlightPlan:
                                                    ConicApp=False,
                                                    isGraphical=False)
           PseudoCounter += 1
-          self.ExpandedWaypoints.append(GamaPwp1)
+          if FlyByData.Valid:
+            self.ExpandedWaypoints.append(GamaPwp1)
           self.ExpandedWaypoints.append(GamaToWp)
-          self.ExpandedWaypoints.append(GamaPwp1_2)
-          self.ExpandedWaypoints.append(GamaPwp2)
+          if FlyByData.Valid:
+            self.ExpandedWaypoints.append(GamaPwp1_2)
+            self.ExpandedWaypoints.append(GamaPwp2)
           
         else:
           NewGamaWp = GamaWaypoints.GamaFplWaypoint(Id=1,
