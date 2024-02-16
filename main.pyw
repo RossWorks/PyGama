@@ -128,6 +128,7 @@ def InsertWpCallB():
 
 def ShowSetCdsCenterPopUp():
   SetCdsCenterPopUp.deiconify()
+  TxtCenterIndex.config(to=len(FlightPlan.Waypoints))
 
 def SetCdsCenter():
   Wp_index = int(TxtCenterIndex.get()) - 1
@@ -268,12 +269,13 @@ TxtDeleteIndex.grid(row=0,column=1)
 DeleteWpPopUp.withdraw()
 
 SetCdsCenterPopUp = tk.Toplevel(master=home)
+SetCdsCenterPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)
 SetCdsCenterGroup = tk.LabelFrame(master = SetCdsCenterPopUp, text = "SET CDS CENTER", font=DefaultFontTuple)
 SetCdsCenterGroup.grid(row=1, column=1)
 SetCdsCenterIndex = tk.Label(master= SetCdsCenterPopUp, text="WP INDEX:", font=DefaultFontTuple)
 SetCdsCenterIndex.grid(row=0,column=0)
 CmdSetCdsCenter = tk.Button(master = SetCdsCenterPopUp, text= "SET CENTER",
-                      command=SetCdsCenter, font=DefaultFontTuple)
+                            command=SetCdsCenter, font=DefaultFontTuple)
 CmdSetCdsCenter.grid(row=1, column=0)
 TxtCenterIndex = tk.Spinbox(master= SetCdsCenterPopUp, width=3, font=DefaultFontTuple, from_=1, to=200,justify="right")
 TxtCenterIndex.grid(row=0,column=1)
