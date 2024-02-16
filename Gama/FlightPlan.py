@@ -120,14 +120,14 @@ class FlightPlan:
                                                    ArcCenterLon  = FlyByData.ArcCenterLon)
           PseudoCounter += 1
           GamaToWp = GamaWaypoints.GamaFplWaypoint(Id=1,
-                                                   Name  = self.Waypoints[Index].Name,
-                                                   Type  = self.Waypoints[Index].Type,
-                                                   Class = self.Waypoints[Index].Class,
-                                                   Lat   = FlyByData.To_Lat,
-                                                   Lon   = FlyByData.To_Lon,
-                                                   GapFollows=True,
-                                                   ConicApp=False,
-                                                   isGraphical=True)
+                                                   Name        = self.Waypoints[Index].Name,
+                                                   Type        = self.Waypoints[Index].Type,
+                                                   Class       = self.Waypoints[Index].Class,
+                                                   Lat         = FlyByData.To_Lat,
+                                                   Lon         = FlyByData.To_Lon,
+                                                   GapFollows  = FlyByData.Valid,
+                                                   ConicApp    = False,
+                                                   isGraphical = True)
           GamaPwp2 = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                    Name  = "Pwp" + str(PseudoCounter),
                                                    Type  = 0,

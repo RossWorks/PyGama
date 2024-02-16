@@ -24,7 +24,8 @@ class FlyByTransition:
                To_Lat     : float, To_Lon     : float,
                ArcRadius  : float, TrkChange  : int,
                LeftTurn   :  bool, InboundTrk : int,
-               ArcCenterLat : float, ArcCenterLon : float) -> None:
+               ArcCenterLat : float, ArcCenterLon : float,
+               Validity : bool) -> None:
     self.Pwp1_Lat   = Pwp1_Lat
     self.Pwp1_Lon   = Pwp1_Lon
     self.Pwp2_Lat   = Pwp2_Lat
@@ -37,7 +38,7 @@ class FlyByTransition:
     self.InboundTrk = InboundTrk
     self.ArcCenterLat = ArcCenterLat
     self.ArcCenterLon = ArcCenterLon
-    self.Valid      = True
+    self.Valid      = Validity
 
 def SolveFlyBy(LatFrom : float, LonFrom : float,
                LatTo   : float, LonTo   : float,
@@ -50,7 +51,7 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
     a = Turn radius side
     b = TO-arc_center side
     c = TO-pwp1 side
-    alpha = half of track change
+    alpha = 90° - track change / 2
     beta = 90° because of tangency between TO leg & turn circle
     gamma is not useful
     see https://en.wikipedia.org/wiki/Solution_of_triangles#A_side,_one_adjacent_angle_and_the_opposite_angle_given_(spherical_AAS)
@@ -61,13 +62,15 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
   NextVector = np.array(LatLon2XYZ(Lat=LatNext,Lon=LonNext),dtype=np.float64)
   FromNormal = np.cross(ToVector,FromVector)
   NextNormal = np.cross(NextVector,ToVector)
-  alpha = .5 * np.arccos(abs(np.dot(FromNormal,NextNormal)/(np.linalg.norm(NextNormal)*np.linalg.norm(FromNormal))))
+  InvalidateResult : bool = False
+  alpha = np.pi / 2 - .5 * np.arccos(abs(np.inner(FromNormal,NextNormal)/(np.linalg.norm(NextNormal)*np.linalg.norm(FromNormal))))
   beta = np.radians(90)
   a = TURN_RADIUS / EARTH_RADIUS
-  if True : #(a < np.radians(90)) and (alpha > beta):
-    b = np.arcsin((np.sin(a)*np.sin(beta))/(np.sin(alpha)))
-  else:
+  if (a < np.radians(90)) and (alpha > beta):
+    #this condition should never be true
     b = np.pi - np.arcsin((np.sin(a)*np.sin(beta))/(np.sin(alpha)))
+  else:
+    b = np.arcsin((np.sin(a)*np.sin(beta))/(np.sin(alpha)))
   sin_12_alpha_p_beta = np.sin(.5*(alpha+beta))
   sin_12_alpha_m_beta = np.sin(.5*(alpha-beta))
   c = 2*np.arctan(np.tan(.5*(a-b)) * sin_12_alpha_p_beta/sin_12_alpha_m_beta)
@@ -86,14 +89,14 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
   n = np.cross(ToVector,FromVector)
   ArcIsLeft = np.dot(n, NextVector) < 0
   TrackChange = int(np.rad2deg(np.pi - (alpha * 2)))
+  print("Track change   = " + str(TrackChange) + "°")
   IncomingTrack = GreatCircleFinalAz(LatFrom=LatFrom, LonFrom=LonFrom, 
                                  LatTo=Pwp1[0], LonTo=Pwp1[1])
   IncomingTrack = int(IncomingTrack)
   print("Incoming track = " + str(IncomingTrack) + "°")
-  print("Track change   = " + str(TrackChange) + "°")
   if TrackChange < FLYBY_THRESHOLD:
-    print("Invalidating Fly-by due to track change < " + str(FLYBY_THRESHOLD) + "°")
-    output.Valid = False
+    print("Invalidating Fly-by due to track change = "+ str(TrackChange) +" < " + str(FLYBY_THRESHOLD) + "°")
+    InvalidateResult = True
   Faz_to_center = IncomingTrack + 90 * (-1 if ArcIsLeft else 1)
   ArcCenter = GreatCircleDirect(LatFrom=Pwp1[0], LonFrom=Pwp1[1],
                                 Faz=Faz_to_center,
@@ -103,7 +106,7 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
                            To_Lat=LatTo, To_Lon=LonTo, ArcRadius=a*EARTH_RADIUS,
                            LeftTurn=ArcIsLeft, TrkChange=TrackChange,
                            InboundTrk=IncomingTrack, ArcCenterLat=ArcCenter[0],
-                           ArcCenterLon=ArcCenter[1])
+                           ArcCenterLon=ArcCenter[1], Validity= not InvalidateResult)
   return output
   
 def LatLon2XY(Lat : float, Lon : float,
