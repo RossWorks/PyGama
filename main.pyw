@@ -42,7 +42,6 @@ def RefreshFpl():
   CdMap.clear()
   CdMap.set_theta_direction(-1)
   CdMap.set_theta_zero_location('N')
-  print(len(RouteMesh))
   for segment in RouteMesh:
     marker = '--' if segment.Intended else ''
     CdMap.plot(segment.Route[:,0],segment.Route[:,1]/1852,
@@ -55,6 +54,8 @@ def RefreshFpl():
   for point in GraphWps:
     CdMap.plot(point.Theta, point.Rho/1852, marker=point.Marker, color = point.Color)
     CdMap.text(point.Theta, point.Rho/1852, point.Name)
+  print("")
+  print("")
 
 ClassList : list[str] = []
 TypeList  : list[str] = []

@@ -56,7 +56,6 @@ def SolveFlyBy(LatFrom : float, LonFrom : float,
     gamma is not useful
     see https://en.wikipedia.org/wiki/Solution_of_triangles#A_side,_one_adjacent_angle_and_the_opposite_angle_given_(spherical_AAS)
     for solution used'''
-  print("computing Fly-By")
   FromVector = np.array(LatLon2XYZ(Lat=LatFrom,Lon=LonFrom),dtype=np.float64)
   ToVector   = np.array(LatLon2XYZ(Lat=LatTo,Lon=LonTo),dtype=np.float64)
   NextVector = np.array(LatLon2XYZ(Lat=LatNext,Lon=LonNext),dtype=np.float64)

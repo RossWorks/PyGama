@@ -44,23 +44,30 @@ class FlightPlan:
     '''This function inserts Wpt @ InsertInPos position (default is 0 for append)
     Asking for InsertInPos = 1 means replacing the first Wp'''
     if (InsertInPos > FPL_MAX_SIZE):
+      print("Flight Plan is not that big: " + str(InsertInPos) + " > " + str(FPL_MAX_SIZE))
       return
     elif (InsertInPos <= 0 or InsertInPos > len(self.Waypoints)):
+      print("Waypoint insertion @ line " + str(InsertInPos))
       self.Waypoints.append(Wpt)
     elif (InsertInPos == 1):
+      print("Substitution of FROM waypoint")
       self.Waypoints.insert(1,Wpt)
       self.Waypoints.pop(0)
     else:
+      print("Waypoint insertion @ line " + str(InsertInPos))
       self.Waypoints.insert(InsertInPos-1, Wpt)
     self.RecomputeExpFp()
     
   def RemoveWp(self, DeleteIndex : int):
     if (DeleteIndex < 1 or DeleteIndex > len(self.Waypoints)):
+      print("Flight Plan is not that big: " + str(DeleteIndex) + " > " + str(len(self.Waypoints)))
       return
+    print("Waypoint deletion from line " + str(DeleteIndex))
     self.Waypoints.pop(DeleteIndex-1)
     self.RecomputeExpFp()
 
   def RecomputeExpFp(self):
+    print("Recompute of Gama Flight Plan")
     PseudoCounter : int = 1
     self.ExpandedWaypoints.clear()
     if len(self.Waypoints) == 1:
@@ -77,6 +84,7 @@ class FlightPlan:
       return
     for Index in range(0, len(self.Waypoints)):
       if Index == len(self.Waypoints):
+        print("Inserting last waypoint: " + self.Waypoints[Index].Name)
         NewGamaWp = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                   Name  = self.Waypoints[Index].Name,
                                                   Type  = self.Waypoints[Index].Type,
@@ -88,6 +96,7 @@ class FlightPlan:
         self.ExpandedWaypoints.append(NewGamaWp)
       else:
         if (not self.Waypoints[Index].FlyOver) and (Index > 0) and (Index < (len(self.Waypoints)-1)):
+          print("computing Fly-By on " + self.Waypoints[Index].Name)
           FlyByData   = GeoSolver.SolveFlyBy(LatFrom = self.Waypoints[Index-1].Lat,
                                              LonFrom = self.Waypoints[Index-1].Lon,
                                              LatTo   = self.Waypoints[Index].Lat,
@@ -146,6 +155,7 @@ class FlightPlan:
             self.ExpandedWaypoints.append(GamaPwp2)
           
         else:
+          print("Crossing " + self.Waypoints[Index].Name + " as Fly-Over")
           NewGamaWp = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                   Name  = self.Waypoints[Index].Name,
                                                   Type  = self.Waypoints[Index].Type,
