@@ -106,8 +106,8 @@ class FlightPlan:
           
           GamaPwp1 = GamaWaypoints.GamaFplWaypoint(Id=1,
                                                    Name  = "Pwp" + str(PseudoCounter),
-                                                   Type  = self.Waypoints[Index].Type,
-                                                   Class = self.Waypoints[Index].Class,
+                                                   Type  = 0,
+                                                   Class = 0,
                                                    Lat   = FlyByData.Pwp1_Lat,
                                                    Lon   = FlyByData.Pwp1_Lon,
                                                    GapFollows=True,

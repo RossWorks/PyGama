@@ -1,4 +1,5 @@
 import Gama
+import math
 import tkinter as tk
 from tkinter import ttk, messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -8,8 +9,8 @@ DefaultFontTuple = ("B612 mono", 10, "normal")
 MenuFontTuple    = ("B612 mono",  9, "normal")
 NumericFontTuple = ("B612", 10, "normal")
 
-FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=45.5,
-                                        PposLon=8.7)
+FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
+                                        PposLon=math.radians(8.7))
 
 def RefreshFpl():
   FplList.config(state="normal")
@@ -69,8 +70,8 @@ for key in Gama.FlightPlan.FplWaypoint.TypeDict:
 def DeleteFpl():
   print("Deactivation of Active Flight Plan")
   global FlightPlan
-  FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=45.5,
-                                          PposLon=8.7)
+  FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
+                                          PposLon=math.radians(8.7))
   RefreshFpl()
 
 def RemoveWpCallB():
@@ -120,8 +121,8 @@ def InsertWpCallB():
                                                   Name= TxtInsertName.get(),
                                                   Type=MyType,
                                                   Class=MyClass,
-                                                  Lat=TmpLat,
-                                                  Lon=TmpLon,
+                                                  Lat=math.radians(TmpLat),
+                                                  Lon=math.radians(TmpLon),
                                                   isFlyOver=WpIsFlyOver.get()==1)
   FlightPlan.InsertWp(Wpt=TmpWp, InsertInPos=int(TxtInsertIndex.get()))
   InsertWpPopUp.withdraw()

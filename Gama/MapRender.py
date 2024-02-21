@@ -1,7 +1,7 @@
 from . import FlightPlan as Fp, GeoSolver, FplWaypoint, GamaWaypoints
 import numpy as np
 
-CDScenter = [45.5, 8.7]
+CDScenter = [np.radians(45.5), np.radians(8.7)]
 
 MARKER_APT = "^"
 MARKER_NDB = "o"
@@ -21,13 +21,13 @@ Type_color_dict : dict[str:str] = {"APT" : "cyan",
                                    "VHF" : "green",
                                    "WPT" : "pink"}
 
-def SetCdsCenter(Lat_d : float, Lon_d : float) -> bool:
+def SetCdsCenter(Lat : float, Lon : float) -> bool:
   global CDScenter
-  if (-90.0 > Lat_d and Lat_d > 90.0):
+  if abs(Lat) > (np.pi/2):
     return False
-  if (-180.0 > Lon_d and Lon_d > 180.0):
+  if abs(Lon) > np.pi:
     return False
-  CDScenter = [Lat_d, Lon_d]
+  CDScenter = [Lat, Lon]
   return True
 
 class GraphFpSegment:
@@ -122,7 +122,7 @@ def DrawPolarArc(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
   ArcCenter = GeoSolver.LatLon2XY(Lat=StartPoint.ArcCenterLat, Lon= StartPoint.ArcCenterLon,
                                   OriginLat=CDScenter[0], OriginLon=CDScenter[1])
   ArcCenterVector = np.array(ArcCenter).reshape((2,1))
-  Angle = np.linspace(start=0,stop=np.deg2rad(StartPoint.TrackChange), num=100).reshape((100,1))
+  Angle = np.linspace(start=0,stop=StartPoint.TrackChange, num=100).reshape((100,1))
   Center2PwpVector = Pwp1Vector - ArcCenterVector
   theta = np.pi * (.5 if StartPoint.ArcIsLeftHand else -.5) #behaviour is inverted from Fly-By computation because a rot matrix follow anticlockwise angle rule
   rot_matrix = np.matrix([[np.cos(theta), -np.sin(theta)],

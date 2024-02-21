@@ -1,3 +1,5 @@
+import math
+
 TypeDict : dict [int : str] = {0 : "------",
                                1 : "USR",
                                2 : "APT",
@@ -41,8 +43,8 @@ class FplWaypoint:
     output += self.Name.rjust(6) + ";"
     output += TypeDict[self.Type].rjust(6) + ";"
     output += ClassDict[self.Class].rjust(6) + ";"
-    output += str(self.Lat).rjust(9) + ";"
-    output += str(self.Lon).rjust(9) + ";"
+    output += "{:6.6f}".format(math.degrees(self.Lat)).rjust(9) + ";"
+    output += "{:6.6f}".format(math.degrees(self.Lon)).rjust(9) + ";"
     output += "FLY OV" if self.FlyOver else "FLY BY"
     output += "\n"
     return output
