@@ -1,7 +1,8 @@
 from . import FlightPlan as Fp, GeoSolver, FplWaypoint, GamaWaypoints
 import numpy as np
 
-CDScenter = [np.radians(45.5), np.radians(8.7)]
+MapCenter = [np.radians(45.5), np.radians(8.7)]
+MapOrientation = np.pi/2
 
 MARKER_APT = "^"
 MARKER_NDB = "o"
@@ -22,12 +23,17 @@ Type_color_dict : dict[str:str] = {"APT" : "cyan",
                                    "WPT" : "pink"}
 
 def SetCdsCenter(Lat : float, Lon : float) -> bool:
-  global CDScenter
+  global MapCenter
   if abs(Lat) > (np.pi/2):
     return False
   if abs(Lon) > np.pi:
     return False
-  CDScenter = [Lat, Lon]
+  MapCenter = [Lat, Lon]
+  return True
+
+def SetMapRotation(NewHeading : float = 0) -> bool:
+  global MapOrientation
+  MapOrientation = NewHeading
   return True
 
 class GraphFpSegment:
@@ -87,9 +93,9 @@ def DrawPolarStraightLine(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
   pre_output = np.zeros(shape=(100,2))
   output = np.zeros(shape=(100,2))
   p1 = np.array(GeoSolver.LatLon2XY(Lat=StartPoint.Lat, Lon=StartPoint.Lon,
-                                    OriginLat=CDScenter[0], OriginLon=CDScenter[1]))
+                                    OriginLat=MapCenter[0], OriginLon=MapCenter[1]))
   p2 = np.array(GeoSolver.LatLon2XY(Lat=EndPoint.Lat, Lon=EndPoint.Lon,
-                                    OriginLat=CDScenter[0], OriginLon=CDScenter[1]))
+                                    OriginLat=MapCenter[0], OriginLon=MapCenter[1]))
   pre_output[:,0] = np.linspace(p1[0],p2[0],100)
   pre_output[:,1] = np.linspace(p1[1],p2[1],100)
   output[:,0] = np.arctan2(pre_output[:,0],pre_output[:,1])
@@ -117,10 +123,10 @@ def DrawPolarArc(StartPoint : Fp.GamaWaypoints.GamaFplWaypoint,
                  EndPoint   : Fp.GamaWaypoints.GamaFplWaypoint) -> np.ndarray:
   output = np.zeros(shape=(100,2))
   Pwp1Vector = np.array(GeoSolver.LatLon2XY(Lat=StartPoint.Lat, Lon= StartPoint.Lon,
-                                            OriginLat=CDScenter[0], OriginLon=CDScenter[1]))
+                                            OriginLat=MapCenter[0], OriginLon=MapCenter[1]))
   Pwp1Vector = Pwp1Vector.reshape((2,1))
   ArcCenter = GeoSolver.LatLon2XY(Lat=StartPoint.ArcCenterLat, Lon= StartPoint.ArcCenterLon,
-                                  OriginLat=CDScenter[0], OriginLon=CDScenter[1])
+                                  OriginLat=MapCenter[0], OriginLon=MapCenter[1])
   ArcCenterVector = np.array(ArcCenter).reshape((2,1))
   Angle = np.linspace(start=0,stop=StartPoint.TrackChange, num=100).reshape((100,1))
   Center2PwpVector = Pwp1Vector - ArcCenterVector
@@ -182,8 +188,8 @@ def RenderWps(WpList : list[FplWaypoint.FplWaypoint],
     TmpGraphWp = GraphWpMarker()
     X,Y = GeoSolver.LatLon2XY(Lat=point.Lat,
                                 Lon=point.Lon,
-                                OriginLat=CDScenter[0],
-                                OriginLon=CDScenter[1])
+                                OriginLat=MapCenter[0],
+                                OriginLon=MapCenter[1])
     Theta,Rho = GeoSolver.XY2ThetaRho(X=X,Y=Y)
     TmpGraphWp.SetPolarPosition(Rho=Rho,Theta=Theta)
     try:

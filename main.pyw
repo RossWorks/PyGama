@@ -12,6 +12,14 @@ NumericFontTuple = ("B612", 10, "normal")
 FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
                                         PposLon=math.radians(8.7))
 
+def SetMapAspect():
+  #Gama.MapRender.SetCdsCenter(Lat=math.radians(FlightPlan.Waypoints[0].Lat),
+  #                            Lon=math.radians(FlightPlan.Waypoints[0].Lon))
+  TmpHeading_rad = math.radians(int(TxtNewBearing.get()) + 90)
+  Gama.MapRender.SetMapRotation(NewHeading=TmpHeading_rad)
+  SetCdsRotationPopUp.withdraw()
+  RefreshFpl()
+
 def RefreshFpl():
   FplList.config(state="normal")
   FplList.delete('1.0',tk.END)
@@ -42,7 +50,7 @@ def RefreshFpl():
                                              Use3D=False)
   CdMap.clear()
   CdMap.set_theta_direction(-1)
-  CdMap.set_theta_zero_location('N')
+  CdMap.set_theta_offset(Gama.MapRender.MapOrientation)
   for segment in RouteMesh:
     marker = '--' if segment.Intended else ''
     CdMap.plot(segment.Route[:,0],segment.Route[:,1]/1852,
@@ -57,6 +65,7 @@ def RefreshFpl():
     CdMap.text(point.Theta, point.Rho/1852, point.Name)
   print("")
   print("")
+  Cdscreen.draw()
 
 ClassList : list[str] = []
 TypeList  : list[str] = []
@@ -92,6 +101,9 @@ def ShowInsertWpPopUp():
 
 def ShowDeleteWpPopUp():
   DeleteWpPopUp.deiconify()
+
+def ShowCdsAspectPopUp():
+  SetCdsRotationPopUp.deiconify()
 
 def InsertWpCallB():
   '''This function calls for a new wp insertion in the active flightplan'''
@@ -137,7 +149,7 @@ def SetCdsCenter():
   try:
     NewLat  = FlightPlan.Waypoints[Wp_index].Lat
     NewLon  = FlightPlan.Waypoints[Wp_index].Lon
-    Success = Gama.MapRender.SetCdsCenter(Lat_d=NewLat, Lon_d=NewLon)
+    Success = Gama.MapRender.SetCdsCenter(Lat=NewLat, Lon=NewLon)
   except IndexError:
     Success = False
   if Success:
@@ -183,9 +195,10 @@ ProcMenu.add_command(label="Load SID...", state="disabled", font=MenuFontTuple)
 ProcMenu.add_command(label="Load STAR...", state="disabled", font=MenuFontTuple)
 
 MainMenuBar.add_cascade(label="VIEW CONTROL",menu=ViewMenu, font=MenuFontTuple)
-ViewMenu.add_command(label="CENTER ON HELI",state="disabled")
+ViewMenu.add_command(label="CENTER ON HELI",state="active", font= MenuFontTuple, command=SetMapAspect)
 ViewMenu.add_command(label="CENTER ON WPT...",state="normal",command=ShowSetCdsCenterPopUp)
 ViewMenu.add_command(label="CENTER ON OBJECT...",state="disabled")
+ViewMenu.add_command(label="ROTATE MAP...",state="normal",command=ShowCdsAspectPopUp)
 
 FplGroup = tk.LabelFrame(master = home, text="GRAPHICAL AREA", font=DefaultFontTuple)
 FplGroup.columnconfigure(index= 0, weight=1)
@@ -258,7 +271,7 @@ ChkInsertFlyOv.grid(row=6,column=1)
 InsertWpPopUp.withdraw()
 
 DeleteWpPopUp = tk.Toplevel(master=home)
-DeleteWpPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)
+DeleteWpPopUp.protocol("WM_DELETE_WINDOW", DeleteWpPopUp.withdraw)
 DeleteWpGroup = tk.LabelFrame(master = DeleteWpPopUp, text = "DELETE WP CMD", font=DefaultFontTuple)
 DeleteWpGroup.grid(row=1, column=1)
 LblDeleteIndex = tk.Label(master= DeleteWpGroup, text="DELETE WP INDEX:", font=DefaultFontTuple)
@@ -271,7 +284,7 @@ TxtDeleteIndex.grid(row=0,column=1)
 DeleteWpPopUp.withdraw()
 
 SetCdsCenterPopUp = tk.Toplevel(master=home)
-SetCdsCenterPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)
+SetCdsCenterPopUp.protocol("WM_DELETE_WINDOW", SetCdsCenterPopUp.withdraw)
 SetCdsCenterGroup = tk.LabelFrame(master = SetCdsCenterPopUp, text = "SET CDS CENTER", font=DefaultFontTuple)
 SetCdsCenterGroup.grid(row=1, column=1)
 SetCdsCenterIndex = tk.Label(master= SetCdsCenterPopUp, text="WP INDEX:", font=DefaultFontTuple)
@@ -282,6 +295,20 @@ CmdSetCdsCenter.grid(row=1, column=0)
 TxtCenterIndex = tk.Spinbox(master= SetCdsCenterPopUp, width=3, font=DefaultFontTuple, from_=1, to=200,justify="right")
 TxtCenterIndex.grid(row=0,column=1)
 SetCdsCenterPopUp.withdraw()
+
+SetCdsRotationPopUp = tk.Toplevel(master=home)
+SetCdsRotationPopUp.protocol("WM_DELETE_WINDOW", SetCdsRotationPopUp.withdraw)
+SetCdsRotationGroup = tk.LabelFrame(master = SetCdsRotationPopUp, text = "SET MAP ROTATION", font=DefaultFontTuple)
+SetCdsRotationGroup.grid(row=1, column=1)
+SetCdsRotationIndex = tk.Label(master= SetCdsRotationGroup, text="NEW BEARING:", font=DefaultFontTuple)
+SetCdsRotationIndex.grid(row=0,column=0)
+CmdSetCdsRotation = tk.Button(master = SetCdsRotationGroup, text= "ROTATE MAP",
+                            command=SetMapAspect, font=DefaultFontTuple)
+CmdSetCdsRotation.grid(row=1, column=0)
+TxtNewBearing = tk.Spinbox(master= SetCdsRotationGroup, width=3, font=DefaultFontTuple, from_=1, to=360, justify="right")
+TxtNewBearing.grid(row=0,column=1)
+SetCdsRotationPopUp.withdraw()
+
 
 
 RefreshFpl()
