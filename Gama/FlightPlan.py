@@ -66,6 +66,15 @@ class FlightPlan:
     self.Waypoints.pop(DeleteIndex-1)
     self.RecomputeExpFp()
 
+  def InternalDirTo(self, DtoIndex : int):
+    self.Waypoints =self.Waypoints[DtoIndex:]
+    PPOS = FplWaypoint.FplWaypoint(Id=0,Name="*PPOS*", Type=5, Class=0,
+                                     Lat=45.5 * 3.1415 / 180.0,
+                                     Lon=8.7  * 3.1415 / 180.0,
+                                     isFlyOver=True)
+    self.Waypoints.insert(0, PPOS)
+    self.RecomputeExpFp()
+
   def RecomputeExpFp(self):
     print("Recompute of Gama Flight Plan")
     PseudoCounter : int = 1

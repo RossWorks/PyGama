@@ -102,6 +102,21 @@ def ShowInsertWpPopUp():
 def ShowDeleteWpPopUp():
   DeleteWpPopUp.deiconify()
 
+def ShowDtoPopUp():
+  global WpsNames
+  TmpList = []
+  for point in FlightPlan.Waypoints:
+    TmpList.append(point.Name)
+  WpsNames.set(TmpList)
+  DtoPopUp.deiconify()
+
+def MakeInternalDirTo():
+  IndexOfDto = DtoList.curselection()
+  print("Selected Wp #" + str(IndexOfDto[0]) + " for D-TO")
+  FlightPlan.InternalDirTo(DtoIndex=IndexOfDto[0])
+  DtoPopUp.withdraw()
+  RefreshFpl()
+
 def ShowCdsAspectPopUp():
   SetCdsRotationPopUp.deiconify()
 
@@ -174,6 +189,7 @@ SAR_Icon      = tk.PhotoImage(file="./Resources/SAR.png")
 FplRepr = tk.StringVar(master = home)
 WpIsFlyOver = tk.IntVar(master=home)
 WpIndex  = tk.IntVar(master=home)
+WpsNames = tk.StringVar(master = home)
 
 MainMenuBar = tk.Menu(master=home)
 FplMenu     = tk.Menu(master=MainMenuBar, tearoff=0)
@@ -183,7 +199,7 @@ home.config(menu=MainMenuBar)
 
 MainMenuBar.add_cascade(label="ACTIVE FLIGHT PLAN",menu=FplMenu,font=MenuFontTuple)
 FplMenu.add_command(label="Deactivate FPL", command=DeleteFpl, image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="Direct To...", state="disabled", image=DTO_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Direct To...", state="active", image=DTO_Icon, compound="left", font=MenuFontTuple,command=ShowDtoPopUp)
 FplMenu.add_command(label="Insert Waypoint...", image=InsertWp_Icon, compound="left", font=MenuFontTuple, command=ShowInsertWpPopUp)
 FplMenu.add_command(label="Delete Waypoint...", image=DeleteWp_Icon, compound="left", font=MenuFontTuple,command=ShowDeleteWpPopUp)
 FplMenu.add_command(label="SAR...", state="disabled", image=SAR_Icon, compound="left", font=MenuFontTuple)
@@ -309,7 +325,18 @@ TxtNewBearing = tk.Spinbox(master= SetCdsRotationGroup, width=3, font=DefaultFon
 TxtNewBearing.grid(row=0,column=1)
 SetCdsRotationPopUp.withdraw()
 
-
+DtoPopUp = tk.Toplevel(master=home)
+DtoPopUp.protocol("WM_DELETE_WINDOW", DtoPopUp.withdraw)
+InternalDtoGroup = tk.LabelFrame(master=DtoPopUp, text="INTERNAL D-TO", font=DefaultFontTuple)
+InternalDtoGroup.grid(row=0,column=0)
+DtoList = tk.Listbox(master=InternalDtoGroup, font=DefaultFontTuple, listvariable=WpsNames,
+                     selectmode=tk.SINGLE)
+DtoList.grid(row=0,column=0)
+CmdIntDto = tk.Button(master=DtoPopUp, text="D-TO", font=DefaultFontTuple, command=MakeInternalDirTo)
+CmdIntDto.grid(row=1,column=1)
+CmdExtDto = tk.Button(master=DtoPopUp, state="disabled", text="EXT D-TO", font=DefaultFontTuple)
+CmdExtDto.grid(row=0,column=1)
+DtoPopUp.withdraw()
 
 RefreshFpl()
 
