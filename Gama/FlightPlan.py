@@ -39,6 +39,12 @@ class FlightPlan:
         Counter += 1
     return output
   
+  def FormatForFile(self) -> str:
+    output : str = ""
+    for Waypoint in self.Waypoints:
+      output += Waypoint.PrintForFile()
+    return output
+  
   def InsertWp(self, Wpt : FplWaypoint.FplWaypoint,
                InsertInPos : int = APPEND_INDEX):
     '''This function inserts Wpt @ InsertInPos position (default is 0 for append)

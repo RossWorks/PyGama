@@ -49,6 +49,17 @@ class FplWaypoint:
     output += "\n"
     return output
   
+  def PrintForFile(self) -> str:
+    output : str = ""
+    output += self.Name      + ";"
+    output += str(self.Type) + ";"
+    output += str(self.Class)+ ";"
+    output += str(self.Lat)  + ";"
+    output += str(self.Lon)  + ";"
+    output += str(self.FlyOver)
+    output += "\n"
+    return output
+  
   def GetClass(self) -> str:
     return ClassDict[self.Class]
   
