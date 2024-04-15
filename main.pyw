@@ -1,7 +1,7 @@
 import Gama
-import math
+import math, os
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
@@ -171,6 +171,45 @@ def SetCdsCenter():
     RefreshFpl()
   SetCdsCenterPopUp.withdraw()
 
+def SaveFPL():
+  NamePrefix = "FPL"
+  termiantion = ".fp"
+  SaveDir = "./storage/"
+  if not os.path.isdir(SaveDir):
+    os.mkdir(SaveDir)
+  FileList = os.listdir(SaveDir)
+  ProposedFileName = (NamePrefix + '999'.rjust(3,'0') + termiantion)
+  for number in range(1,31):
+    if (NamePrefix + str(number).rjust(3,'0') + termiantion) not in FileList:
+      ProposedFileName = (NamePrefix + str(number).rjust(3,'0') + termiantion)
+      break
+  FileContent = FlightPlan.FormatForFile()
+  FileName = filedialog.asksaveasfilename(confirmoverwrite=True, initialdir=SaveDir, initialfile=ProposedFileName)
+  if len(FileName) < 1:
+    return
+  FilePtr = open(FileName, mode='w')
+  FilePtr.writelines(FileContent)
+  FilePtr.close()
+  return
+
+def LoadFPL():
+  FileName = filedialog.askopenfilename(defaultextension='fp', initialdir="./storage/")
+  FilePtr = open(file=FileName, mode='r')
+  global FlightPlan
+  FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
+                                          PposLon=math.radians(8.7))
+  Index = 1
+  for line in FilePtr:
+    WpInfo=line.split(sep=';')
+    MyWp = Gama.FlightPlan.FplWaypoint.FplWaypoint(Id = Index, Name=WpInfo[0], Type=int(WpInfo[1].strip()),
+                                                   Class=int(WpInfo[2].strip()),
+                                                   Lat=float(WpInfo[3]),
+                                                   Lon=float(WpInfo[4]),
+                                                   isFlyOver= WpInfo[5] == "FLY OV")
+    FlightPlan.InsertWp(Wpt=MyWp, InsertInPos=Index)
+    Index += 1
+  FilePtr.close()
+  RefreshFpl()
 
 home = tk.Tk()
 home.title("PyGama")
@@ -203,8 +242,8 @@ FplMenu.add_command(label="Direct To...", state="active", image=DTO_Icon, compou
 FplMenu.add_command(label="Insert Waypoint...", image=InsertWp_Icon, compound="left", font=MenuFontTuple, command=ShowInsertWpPopUp)
 FplMenu.add_command(label="Delete Waypoint...", image=DeleteWp_Icon, compound="left", font=MenuFontTuple,command=ShowDeleteWpPopUp)
 FplMenu.add_command(label="SAR...", state="disabled", image=SAR_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="Save FPL...", state="disabled", image=SaveFpl_Icon, compound="left", font=MenuFontTuple)
-FplMenu.add_command(label="Load FPL...", state="disabled", image=LoadFpl_Icon, compound="left", font=MenuFontTuple)
+FplMenu.add_command(label="Save FPL...", state="active", image=SaveFpl_Icon, compound="left", font=MenuFontTuple, command=SaveFPL)
+FplMenu.add_command(label="Load FPL...", state="active", image=LoadFpl_Icon, compound="left", font=MenuFontTuple, command=LoadFPL)
 
 MainMenuBar.add_cascade(label="PROCEDURES",menu=ProcMenu,font=MenuFontTuple)
 ProcMenu.add_command(label="Load SID...", state="disabled", font=MenuFontTuple)
