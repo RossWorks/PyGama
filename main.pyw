@@ -1,22 +1,21 @@
-import Gama
+import CDS, FMS
 import math, os
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
+
 
 DefaultFontTuple = ("B612 mono", 10, "normal")
 MenuFontTuple    = ("B612 mono",  9, "normal")
 NumericFontTuple = ("B612", 10, "normal")
 
-FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
-                                        PposLon=math.radians(8.7))
+FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
+                            PposLon=math.radians(8.7))
 
 def SetMapAspect():
   #Gama.MapRender.SetCdsCenter(Lat=math.radians(FlightPlan.Waypoints[0].Lat),
   #                            Lon=math.radians(FlightPlan.Waypoints[0].Lon))
   TmpHeading_rad = math.radians(int(TxtNewBearing.get()) + 90)
-  Gama.MapRender.SetMapRotation(NewHeading=TmpHeading_rad)
+  DisplayUnit.SetMapRotation(NewHeading=TmpHeading_rad)
   SetCdsRotationPopUp.withdraw()
   RefreshFpl()
 
@@ -28,59 +27,24 @@ def RefreshFpl():
   GamaList.config(state="normal")
   GamaList.delete('1.0',tk.END)
   GamaList.insert('1.0',FlightPlan.__repr__(Gama=True))
-  GamaList.config(state="disabled")
-
-  #3D Flight map
-  World.clear()
-  RouteMesh = list()
-  WorldMesh = Gama.MapRender.RenderWorld(LatRes=30,LonRes=30)
-  World.plot_wireframe(WorldMesh['X'],WorldMesh['Y'],WorldMesh['Z'])
-  if len(FlightPlan.Waypoints) > 1:
-    RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
-                                             Use3D=True)
-  for segment in RouteMesh:
-    marker = '--' if segment.Intended else ''
-    World.plot(segment.Route[:,0],segment.Route[:,1], segment.Route[:,2],
-               color=segment.Color, marker=marker)
-    
+  GamaList.config(state="disabled")   
   #2D Gama FPL
-  RouteMesh.clear()
-  if len(FlightPlan.Waypoints) > 1:
-    RouteMesh = Gama.MapRender.RenderGamaFpl(FlightPlan.ExpandedWaypoints,
-                                             Use3D=False)
-  CdMap.clear()
-  CdMap.set_theta_direction(-1)
-  CdMap.set_theta_offset(Gama.MapRender.MapOrientation)
-  for segment in RouteMesh:
-    marker = '--' if segment.Intended else ''
-    CdMap.plot(segment.Route[:,0],segment.Route[:,1]/1852,
-               color=segment.Color, marker=marker, markersize=2)
+  DisplayUnit.RefreshFpl(Fpl=FlightPlan.ExpandedWaypoints)
   
-  #Names in 2D FPLN
-  GraphWps = list()
-  if len(FlightPlan.Waypoints) > 1:
-    GraphWps = Gama.MapRender.RenderWps(FlightPlan.Waypoints,is3D=False)
-  for point in GraphWps:
-    CdMap.plot(point.Theta, point.Rho/1852, marker=point.Marker, color = point.Color)
-    CdMap.text(point.Theta, point.Rho/1852, point.Name)
-  print("")
-  print("")
-  Cdscreen.draw()
-
 ClassList : list[str] = []
 TypeList  : list[str] = []
 
-for key in Gama.FlightPlan.FplWaypoint.ClassDict:
-  ClassList.append(Gama.FlightPlan.FplWaypoint.ClassDict[key])
+for key in FMS.FplWaypoint.ClassDict:
+  ClassList.append(FMS.FplWaypoint.ClassDict[key])
 
-for key in Gama.FlightPlan.FplWaypoint.TypeDict:
-  TypeList.append(Gama.FlightPlan.FplWaypoint.TypeDict[key])
+for key in FMS.FplWaypoint.TypeDict:
+  TypeList.append(FMS.FplWaypoint.TypeDict[key])
 
 def DeleteFpl():
   print("Deactivation of Active Flight Plan")
   global FlightPlan
-  FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
-                                          PposLon=math.radians(8.7))
+  FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
+                                         PposLon=math.radians(8.7))
   RefreshFpl()
 
 def RemoveWpCallB():
@@ -124,13 +88,13 @@ def InsertWpCallB():
   '''This function calls for a new wp insertion in the active flightplan'''
   MyType  : int = -1
   MyClass : int = -1
-  for key in Gama.FlightPlan.FplWaypoint.TypeDict:
-    if Gama.FlightPlan.FplWaypoint.TypeDict[key] == TxtInsertType.get():
+  for key in FMS.FlightPlan.FplWaypoint.TypeDict:
+    if FMS.FlightPlan.FplWaypoint.TypeDict[key] == TxtInsertType.get():
       MyType = key
   if MyType < 0:
     return
-  for key in Gama.FlightPlan.FplWaypoint.ClassDict:
-    if Gama.FlightPlan.FplWaypoint.ClassDict[key] == TxtInsertClass.get():
+  for key in FMS.FlightPlan.FplWaypoint.ClassDict:
+    if FMS.FlightPlan.FplWaypoint.ClassDict[key] == TxtInsertClass.get():
       MyClass = key
   if MyClass < 0:
     return
@@ -144,7 +108,7 @@ def InsertWpCallB():
       MyMessage += str(element) + "\n"
     messagebox.showerror(title="INSERT WP ERROR", message=MyMessage)
     return
-  TmpWp = Gama.FlightPlan.FplWaypoint.FplWaypoint(Id= TmpId,
+  TmpWp = FMS.FlightPlan.FplWaypoint.FplWaypoint(Id= TmpId,
                                                   Name= TxtInsertName.get(),
                                                   Type=MyType,
                                                   Class=MyClass,
@@ -164,7 +128,7 @@ def SetCdsCenter():
   try:
     NewLat  = FlightPlan.Waypoints[Wp_index].Lat
     NewLon  = FlightPlan.Waypoints[Wp_index].Lon
-    Success = Gama.MapRender.SetCdsCenter(Lat=NewLat, Lon=NewLon)
+    Success = DisplayUnit.SetCdsCenter(Lat=NewLat, Lon=NewLon)
   except IndexError:
     Success = False
   if Success:
@@ -196,12 +160,12 @@ def LoadFPL():
   FileName = filedialog.askopenfilename(defaultextension='fp', initialdir="./storage/")
   FilePtr = open(file=FileName, mode='r')
   global FlightPlan
-  FlightPlan = Gama.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
+  FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
                                           PposLon=math.radians(8.7))
   Index = 1
   for line in FilePtr:
     WpInfo=line.split(sep=';')
-    MyWp = Gama.FlightPlan.FplWaypoint.FplWaypoint(Id = Index, Name=WpInfo[0], Type=int(WpInfo[1].strip()),
+    MyWp = FMS.FlightPlan.FplWaypoint.FplWaypoint(Id = Index, Name=WpInfo[0], Type=int(WpInfo[1].strip()),
                                                    Class=int(WpInfo[2].strip()),
                                                    Lat=float(WpInfo[3]),
                                                    Lon=float(WpInfo[4]),
@@ -267,22 +231,8 @@ FplWorkArea.add(FplList, text="FLIGHT PLAN")
 GamaList = tk.Text(master=FplWorkArea, width=120,state="disabled", font=DefaultFontTuple)
 GamaList.grid(row=0,column=0, sticky="news")
 FplWorkArea.add(GamaList, text="GAMA PROTOCOL")
-FplGraph = Figure(dpi=150.0, figsize=[5.0,5.0])
-FplCanvas = FigureCanvasTkAgg(FplGraph, master = FplGroup)
-World = FplGraph.add_subplot(projection='3d')
-World.set_xlabel("X")
-World.set_ylabel("Y")
-World.set_zlabel("Z")
-World.set_aspect("equal")
-FplWorkArea.add(FplCanvas.get_tk_widget(), text="3D FLIGHT MAP")
-Cds = Figure(dpi=150.0, figsize=[5.0,5.0])
-Cdscreen = FigureCanvasTkAgg(Cds, master = FplWorkArea)
-CdMap = Cds.add_subplot(projection='polar')
-CdMap.set_theta_zero_location('N')
-CdMap.set_theta_direction(-1)
-#CdMap.set_facecolor('k')
-CdMap.axes.clear()
-FplWorkArea.add(Cdscreen.get_tk_widget(), text="CDS MAP")
+DisplayUnit = CDS.Display.Display(MasterWidget=FplWorkArea)
+FplWorkArea.add(DisplayUnit.DisplayWidget, text="CDS MAP")
 
 InsertWpPopUp = tk.Toplevel(master=home)
 InsertWpPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)

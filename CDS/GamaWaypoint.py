@@ -1,6 +1,18 @@
-from . import FplWaypoint as FpWp
-
 import math
+
+TypeDict : dict [int : str] = {0 : "------",
+                               1 : "USR",
+                               2 : "APT",
+                               3 : "VHF",
+                               4 : "NDB",
+                               5 : "WPT"}
+
+ClassDict : dict [int : str] = {0 : "------",
+                                1 : "VOR",
+                                2 : "DME",
+                                3 : "VORDME",
+                                4 : "TACAN",
+                                5 : "VORTAC"}
 
 STRAIGHT : str = "STRAIGHT"
 ARC      : str = "CONIC"
@@ -26,7 +38,7 @@ SegmentDisplay : dict[bool : str] = {False : NOT_INTENDED,
 WpDisplay : dict[bool : str] = {False : NOT_GRAPHICAL,
                                 True  : GRAPHICAL}
 
-class GamaFplWaypoint:
+class GamaWaypoint:
   Id            : int    # unit: N/A
   Name          : str    # unit: N/A
   Type          : int    # unit: N/A
@@ -83,8 +95,8 @@ class GamaFplWaypoint:
   def __repr__(self) -> str:
     output : str = ""
     output += self.Name.rjust(6) + ";"
-    output += FpWp.TypeDict[self.Type].rjust(6) + ";"
-    output += FpWp.ClassDict[self.Class].rjust(6) + ";"
+    output += TypeDict[self.Type].rjust(6) + ";"
+    output += ClassDict[self.Class].rjust(6) + ";"
     output += "{:6.6f}".format(math.degrees(self.Lat)).rjust(9) + ";" 
     output += "{:6.6f}".format(math.degrees(self.Lon)).rjust(9) + ";"
     output += "{:2.1f}".format(self.ArcRadius).rjust(8) + ";"
@@ -98,3 +110,9 @@ class GamaFplWaypoint:
     output += WpDisplay[self.isGraphical].rjust(10) + ";"
     output += "\n"
     return output
+  
+  def GetClass(self) -> str:
+    return ClassDict[self.Class]
+  
+  def GetType(self) -> str:
+    return TypeDict[self.Type]
