@@ -80,6 +80,7 @@ class Display:
     self.DisplayWidget  = self.Cdscreen.get_tk_widget()
     self.MapCenter      = [np.radians(45.5), np.radians(8.7)]
     self.MapOrientation = np.pi/2
+    self.StoredFpl : list[GamaWaypoint.GamaWaypoint] = []
 
   def GetTkinterWidget(self) -> tk.Widget:
     return self.DisplayWidget
@@ -104,12 +105,14 @@ class Display:
     print("")
     self.Cdscreen.draw()
 
-  def SetCdsCenter(self, Lat : float, Lon : float) -> bool:
+  def SetCdsCenter(self, Lat : float, Lon : float, DelayUpdate : bool = False) -> bool:
     if abs(Lat) > (np.pi/2):
       return False
     if abs(Lon) > np.pi:
       return False
     self.MapCenter = [Lat, Lon]
+    if not DelayUpdate:
+      self.RefreshFpl(Fpl=self.StoredFpl)
     return True
   
   def SetMapRotation(self, NewHeading : float = 0) -> bool:
@@ -117,6 +120,7 @@ class Display:
     return True
 
   def _RenderGamaFpl(self, GamaFpl : list[GamaWaypoint.GamaWaypoint]) -> list[GraphFpSegment]:
+    self.StoredFpl = GamaFpl.copy()
     print("CDS: Updating Flight plan")
     output = list()
     TmpSegment = GraphFpSegment()

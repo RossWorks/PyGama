@@ -1,8 +1,9 @@
-import CDS, FMS
+import CDS, FMS, HELO
 import math, os
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-
+import HELO.FCS
+import HELO.Helicopter
 
 DefaultFontTuple = ("B612 mono", 10, "normal")
 MenuFontTuple    = ("B612 mono",  9, "normal")
@@ -10,6 +11,32 @@ NumericFontTuple = ("B612", 10, "normal")
 
 FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
                             PposLon=math.radians(8.7))
+
+FlightController = HELO.FCS.FCS(Mode=0, P=100.0, I=0.0, D=0.0)
+
+FlyingThing = HELO.Helicopter.Helicopter(Lat = math.radians(45.5),
+                                         Lon = math.radians(8.70))
+FlyingThing.VNS = 60 * 1852 / 3600
+FlyingThing.VEW = -60 * 1852 / 3600
+
+def SimulationStep():
+  FlightController.SetCurrHdg(CurrHdg=FlyingThing.Hdg)
+  NewRoll = FlightController.ExecuteStep()
+  FlyingThing.SetRollAngle(NewRoll=NewRoll)
+  FlyingThing.SimulationStep()
+  DisplayUnit.MapCenter = [FlyingThing.Lat, FlyingThing.Lon]
+  ProgressReport.config(state="normal")
+  ProgressReport.delete("1.0", tk.END)
+  ProgressReport.insert("1.0", str(FlyingThing))
+  ProgressReport.insert(tk.END, str(FlightController))
+  ProgressReport.config(state="disabled")
+
+def SetNewHdgCmd():
+  FlightController.SelHdg = math.radians(float(TxtSelHdg.get()))
+  FlightController.Mode = 1
+
+def ShowFcs():
+  FcsPanel.deiconify()
 
 def SetMapAspect():
   #Gama.MapRender.SetCdsCenter(Lat=math.radians(FlightPlan.Waypoints[0].Lat),
@@ -198,6 +225,7 @@ MainMenuBar = tk.Menu(master=home)
 FplMenu     = tk.Menu(master=MainMenuBar, tearoff=0)
 ProcMenu    = tk.Menu(master=MainMenuBar, tearoff=0)
 ViewMenu    = tk.Menu(master=MainMenuBar, tearoff=0)
+SimMenu     = tk.Menu(master=MainMenuBar, tearoff=0)
 home.config(menu=MainMenuBar)
 
 MainMenuBar.add_cascade(label="ACTIVE FLIGHT PLAN",menu=FplMenu,font=MenuFontTuple)
@@ -219,6 +247,12 @@ ViewMenu.add_command(label="CENTER ON WPT...",state="normal",command=ShowSetCdsC
 ViewMenu.add_command(label="CENTER ON OBJECT...",state="disabled")
 ViewMenu.add_command(label="ROTATE MAP...",state="normal",command=ShowCdsAspectPopUp)
 
+MainMenuBar.add_cascade(label="HELO CONTROL",menu=SimMenu, font=MenuFontTuple)
+SimMenu.add_command(label="START SIMULATION",state="disabled", font= MenuFontTuple)
+SimMenu.add_command(label="STOP SIMULATION",state="disabled", font= MenuFontTuple)
+SimMenu.add_command(label="SIM STEP",state="normal", command=SimulationStep)
+SimMenu.add_command(label="FCS PANEL",state="normal",command=ShowFcs)
+
 FplGroup = tk.LabelFrame(master = home, text="GRAPHICAL AREA", font=DefaultFontTuple)
 FplGroup.columnconfigure(index= 0, weight=1)
 FplGroup.rowconfigure(index=0,weight=1)
@@ -233,6 +267,8 @@ GamaList.grid(row=0,column=0, sticky="news")
 FplWorkArea.add(GamaList, text="GAMA PROTOCOL")
 DisplayUnit = CDS.Display.Display(MasterWidget=FplWorkArea)
 FplWorkArea.add(DisplayUnit.DisplayWidget, text="CDS MAP")
+ProgressReport = tk.Text(master=FplWorkArea, width=120,state="disabled", font=DefaultFontTuple)
+FplWorkArea.add(ProgressReport, text="PROGRESS")
 
 InsertWpPopUp = tk.Toplevel(master=home)
 InsertWpPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)
@@ -287,6 +323,19 @@ CmdDelete.grid(row=1, column=0)
 TxtDeleteIndex = tk.Spinbox(master= DeleteWpGroup, width=3, font=DefaultFontTuple, from_=0, to=200,justify="right")
 TxtDeleteIndex.grid(row=0,column=1)
 DeleteWpPopUp.withdraw()
+
+FcsPanel = tk.Toplevel(master=home)
+FcsPanel.protocol("WM_DELETE_WINDOW", FcsPanel.withdraw)
+LnavGroup = tk.LabelFrame(master = FcsPanel, text = "LNAV", font=DefaultFontTuple)
+LnavGroup.grid(row=1, column=1)
+LblSelHdg = tk.Label(master= LnavGroup, text="SELECTED HDG", font=DefaultFontTuple)
+LblSelHdg.grid(row=0,column=0)
+CmdHdgMode = tk.Button(master = LnavGroup, text= "SET HDG",
+                      command=SetNewHdgCmd, font=DefaultFontTuple)
+CmdHdgMode.grid(row=1, column=0)
+TxtSelHdg = tk.Spinbox(master= LnavGroup, width=3, font=DefaultFontTuple, from_=0, to=359,justify="center")
+TxtSelHdg.grid(row=0,column=1)
+FcsPanel.withdraw()
 
 SetCdsCenterPopUp = tk.Toplevel(master=home)
 SetCdsCenterPopUp.protocol("WM_DELETE_WINDOW", SetCdsCenterPopUp.withdraw)
