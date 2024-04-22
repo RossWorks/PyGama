@@ -8,18 +8,22 @@ import HELO.Helicopter
 DefaultFontTuple = ("B612 mono", 10, "normal")
 MenuFontTuple    = ("B612 mono",  9, "normal")
 NumericFontTuple = ("B612", 10, "normal")
+KillApp : bool = False
+SimulationActive : bool = False
+minor : int = 0
 
 FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
                             PposLon=math.radians(8.7))
 
-FlightController = HELO.FCS.FCS(Mode=0, P=100.0, I=0.0, D=0.0)
+FlightController = HELO.FCS.FCS(Mode=1, P=0.5, I=0.0, D=0.0)
 
 FlyingThing = HELO.Helicopter.Helicopter(Lat = math.radians(45.5),
                                          Lon = math.radians(8.70))
 FlyingThing.VNS = 60 * 1852 / 3600
-FlyingThing.VEW = -60 * 1852 / 3600
+FlyingThing.VEW = .5* 60 * 1852 / 3600
 
 def SimulationStep():
+  global minor, FlightController, FlyingThing
   FlightController.SetCurrHdg(CurrHdg=FlyingThing.Hdg)
   NewRoll = FlightController.ExecuteStep()
   FlyingThing.SetRollAngle(NewRoll=NewRoll)
@@ -30,6 +34,8 @@ def SimulationStep():
   ProgressReport.insert("1.0", str(FlyingThing))
   ProgressReport.insert(tk.END, str(FlightController))
   ProgressReport.config(state="disabled")
+  if minor % 1000 == 0:
+    DisplayUnit.RefreshFpl(FlightPlan.ExpandedWaypoints)
 
 def SetNewHdgCmd():
   FlightController.SelHdg = math.radians(float(TxtSelHdg.get()))
@@ -37,6 +43,14 @@ def SetNewHdgCmd():
 
 def ShowFcs():
   FcsPanel.deiconify()
+
+def StartSimulation():
+  global SimulationActive
+  SimulationActive = True
+
+def StopSimulation():
+  global SimulationActive
+  SimulationActive = False
 
 def SetMapAspect():
   #Gama.MapRender.SetCdsCenter(Lat=math.radians(FlightPlan.Waypoints[0].Lat),
@@ -202,7 +216,14 @@ def LoadFPL():
   FilePtr.close()
   RefreshFpl()
 
+def TerminateApp():
+  global KillApp
+  KillApp = True
+  home.destroy()
+  exit()
+
 home = tk.Tk()
+home.protocol("WM_DELETE_WINDOW", TerminateApp)
 home.title("PyGama")
 home.geometry("1200x800")
 tk.Grid.rowconfigure(home,0, weight=1)
@@ -248,8 +269,8 @@ ViewMenu.add_command(label="CENTER ON OBJECT...",state="disabled")
 ViewMenu.add_command(label="ROTATE MAP...",state="normal",command=ShowCdsAspectPopUp)
 
 MainMenuBar.add_cascade(label="HELO CONTROL",menu=SimMenu, font=MenuFontTuple)
-SimMenu.add_command(label="START SIMULATION",state="disabled", font= MenuFontTuple)
-SimMenu.add_command(label="STOP SIMULATION",state="disabled", font= MenuFontTuple)
+SimMenu.add_command(label="START SIMULATION",state="normal", font= MenuFontTuple,command=StartSimulation)
+SimMenu.add_command(label="STOP SIMULATION",state="normal", font= MenuFontTuple, command=StopSimulation)
 SimMenu.add_command(label="SIM STEP",state="normal", command=SimulationStep)
 SimMenu.add_command(label="FCS PANEL",state="normal",command=ShowFcs)
 
@@ -378,4 +399,8 @@ DtoPopUp.withdraw()
 
 RefreshFpl()
 
-home.mainloop()
+while(not KillApp):
+  if SimulationActive:
+    SimulationStep()
+  home.update()
+  minor += 1

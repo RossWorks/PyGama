@@ -46,8 +46,8 @@ class Helicopter:
     self.Hdg = NewHeading
 
   def SimulationStep(self) -> None:
-    self.VNS += Gravity * np.tan(self.bank) * self.DeltaTime * np.cos(self.Hdg)
-    self.VEW += Gravity * np.tan(self.bank) * self.DeltaTime * np.sin(self.Hdg)
+    self.VNS += Gravity * np.tan(self.bank) * self.DeltaTime * np.sin(self.Hdg)
+    self.VEW += Gravity * np.tan(self.bank) * self.DeltaTime * np.cos(self.Hdg)
     self.Lat += self.VNS * self.DeltaTime / EARTH_RADIUS
     self.Lon += self.VEW * self.DeltaTime / (EARTH_RADIUS * np.cos(self.Lat))
     self.Hdg = np.arctan2(self.VEW, self.VNS)
