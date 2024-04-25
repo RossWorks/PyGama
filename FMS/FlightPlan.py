@@ -73,11 +73,11 @@ class FlightPlan:
     self.Waypoints.pop(DeleteIndex-1)
     self.RecomputeExpFp()
 
-  def InternalDirTo(self, DtoIndex : int):
+  def InternalDirTo(self, DtoIndex : int, PposLat : float, PposLon : float):
     self.Waypoints =self.Waypoints[DtoIndex:]
     PPOS = FplWaypoint.FplWaypoint(Id=0,Name="*PPOS*", Type=5, Class=0,
-                                     Lat=45.5 * 3.1415 / 180.0,
-                                     Lon=8.7  * 3.1415 / 180.0,
+                                     Lat=PposLat,
+                                     Lon=PposLon,
                                      isFlyOver=True)
     self.Waypoints.insert(0, PPOS)
     self.RecomputeExpFp()

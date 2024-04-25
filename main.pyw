@@ -1,5 +1,6 @@
 import EDCU.EDCU
-import CDS, FMS, HELO, EDCU
+import FMS.FMS
+import CDS, HELO, EDCU
 import math, os
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
@@ -13,8 +14,7 @@ KillApp : bool = False
 SimulationActive : bool = False
 minor : int = 0
 
-FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
-                            PposLon=math.radians(8.7))
+Navigator = FMS.FMS.FMS()
 
 FlightController = HELO.FCS.FCS(Mode=0, P=0.5, I=0.0, D=0.0)
 
@@ -23,20 +23,26 @@ FlyingThing = HELO.Helicopter.Helicopter(Lat = math.radians(45.5),
 FlyingThing.V = 60 * 1852 / 3600
 
 def SimulationStep():
-  global minor, FlightController, FlyingThing
-  FlightController.SetCurrHdg(CurrHdg=FlyingThing.Hdg)
+  global minor, FlightController, FlyingThing, SimulationActive
+  Navigator.UpdateHeloState(Lat=FlyingThing.Lat,
+                            Lon=FlyingThing.Lon,
+                            Hdg=FlyingThing.Hdg,
+                            Gs = FlyingThing.V)
+  Navigator.ElaborationStep()
+  FlightController.SetCurrHdg(CurrHdg=Navigator.HeloState.Heading)
   NewRoll = FlightController.ExecuteStep()
-  FlyingThing.SetRollAngle(NewRoll=NewRoll)
-  FlyingThing.SimulationStep()
-  DisplayUnit.MapCenter = [FlyingThing.Lat, FlyingThing.Lon]
-  FMS2EDCUData = EDCU.EDCU.EDCUdata(Lat=FlyingThing.Lat,
-                                    Lon=FlyingThing.Lon,
-                                    Hdg=FlyingThing.Hdg,
-                                    GS=FlyingThing.V,
-                                    BankCmd=FlyingThing.bank)
+  if SimulationActive:
+    FlyingThing.SetRollAngle(NewRoll=NewRoll)
+    FlyingThing.SimulationStep()
+  DisplayUnit.MapCenter = [Navigator.HeloState.lat, Navigator.HeloState.lon]
+  FMS2EDCUData = EDCU.EDCU.EDCUdata(Lat=Navigator.HeloState.lat,
+                                    Lon=Navigator.HeloState.lon,
+                                    Hdg=Navigator.HeloState.Heading,
+                                    GS=Navigator.HeloState.Speed,
+                                    BankCmd=0.0)
   ProgressReport.Update(FMS2EDCUData)
-  if minor % 1000 == 0:
-    DisplayUnit.RefreshFpl(FlightPlan.ExpandedWaypoints)
+  if minor % 3000 == 0:
+    DisplayUnit.RefreshFpl(Navigator.FlightPlan.ExpandedWaypoints)
 
 def SetNewHdgCmd():
   FlightController.SelHdg = math.radians(float(TxtSelHdg.get()))
@@ -64,10 +70,10 @@ def SetMapAspect():
 def RefreshFpl():
   GamaList.config(state="normal")
   GamaList.delete('1.0',tk.END)
-  GamaList.insert('1.0',FlightPlan.__repr__(Gama=True))
+  GamaList.insert('1.0',Navigator.FlightPlan.__repr__(Gama=True))
   GamaList.config(state="disabled")   
   #2D Gama FPL
-  DisplayUnit.RefreshFpl(Fpl=FlightPlan.ExpandedWaypoints)
+  DisplayUnit.RefreshFpl(Fpl=Navigator.FlightPlan.ExpandedWaypoints)
   
 ClassList : list[str] = []
 TypeList  : list[str] = []
@@ -80,9 +86,7 @@ for key in FMS.FplWaypoint.TypeDict:
 
 def DeleteFpl():
   print("Deactivation of Active Flight Plan")
-  global FlightPlan
-  FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
-                                         PposLon=math.radians(8.7))
+  Navigator.DeselectAfpl()
   RefreshFpl()
 
 def RemoveWpCallB():
@@ -94,7 +98,7 @@ def RemoveWpCallB():
       MyMessage += str(element) + "\n"
     messagebox.showerror(title="DELETE WP ERROR", message=MyMessage)
     return
-  FlightPlan.RemoveWp(Index2BeRemoved)
+  Navigator.RemoveWpFromAfpl(Index2BeRemoved)
   DeleteWpPopUp.withdraw()
   RefreshFpl()
 
@@ -107,7 +111,7 @@ def ShowDeleteWpPopUp():
 def ShowDtoPopUp():
   global WpsNames
   TmpList = []
-  for point in FlightPlan.Waypoints:
+  for point in Navigator.FlightPlan.Waypoints:
     TmpList.append(point.Name)
   WpsNames.set(TmpList)
   DtoPopUp.deiconify()
@@ -115,7 +119,7 @@ def ShowDtoPopUp():
 def MakeInternalDirTo():
   IndexOfDto = DtoList.curselection()
   print("Selected Wp #" + str(IndexOfDto[0]) + " for D-TO")
-  FlightPlan.InternalDirTo(DtoIndex=IndexOfDto[0])
+  Navigator.InternalDTO(WpIndex=IndexOfDto[0])
   DtoPopUp.withdraw()
   RefreshFpl()
 
@@ -153,19 +157,19 @@ def InsertWpCallB():
                                                   Lat=math.radians(TmpLat),
                                                   Lon=math.radians(TmpLon),
                                                   isFlyOver=WpIsFlyOver.get()==1)
-  FlightPlan.InsertWp(Wpt=TmpWp, InsertInPos=int(TxtInsertIndex.get()))
+  Navigator.InsertWpInAfpl(Wpt=TmpWp, InsertInPos=int(TxtInsertIndex.get()))
   InsertWpPopUp.withdraw()
   RefreshFpl()
 
 def ShowSetCdsCenterPopUp():
   SetCdsCenterPopUp.deiconify()
-  TxtCenterIndex.config(to=len(FlightPlan.Waypoints))
+  TxtCenterIndex.config(to=len(Navigator.Waypoints))
 
 def SetCdsCenter():
   Wp_index = int(TxtCenterIndex.get()) - 1
   try:
-    NewLat  = FlightPlan.Waypoints[Wp_index].Lat
-    NewLon  = FlightPlan.Waypoints[Wp_index].Lon
+    NewLat  = Navigator.Waypoints[Wp_index].Lat
+    NewLon  = Navigator.Waypoints[Wp_index].Lon
     Success = DisplayUnit.SetCdsCenter(Lat=NewLat, Lon=NewLon)
   except IndexError:
     Success = False
@@ -185,32 +189,14 @@ def SaveFPL():
     if (NamePrefix + str(number).rjust(3,'0') + termiantion) not in FileList:
       ProposedFileName = (NamePrefix + str(number).rjust(3,'0') + termiantion)
       break
-  FileContent = FlightPlan.FormatForFile()
   FileName = filedialog.asksaveasfilename(confirmoverwrite=True, initialdir=SaveDir, initialfile=ProposedFileName)
   if len(FileName) < 1:
     return
-  FilePtr = open(FileName, mode='w')
-  FilePtr.writelines(FileContent)
-  FilePtr.close()
-  return
+  Navigator.SaveAfpl(SaveFileName=FileName)
 
 def LoadFPL():
   FileName = filedialog.askopenfilename(defaultextension='fp', initialdir="./storage/")
-  FilePtr = open(file=FileName, mode='r')
-  global FlightPlan
-  FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
-                                          PposLon=math.radians(8.7))
-  Index = 1
-  for line in FilePtr:
-    WpInfo=line.split(sep=';')
-    MyWp = FMS.FlightPlan.FplWaypoint.FplWaypoint(Id = Index, Name=WpInfo[0], Type=int(WpInfo[1].strip()),
-                                                   Class=int(WpInfo[2].strip()),
-                                                   Lat=float(WpInfo[3]),
-                                                   Lon=float(WpInfo[4]),
-                                                   isFlyOver= WpInfo[5] == "FLY OV")
-    FlightPlan.InsertWp(Wpt=MyWp, InsertInPos=Index)
-    Index += 1
-  FilePtr.close()
+  Navigator.LoadUsrFpl(FilePath=FileName)
   RefreshFpl()
 
 def TerminateApp():
@@ -394,7 +380,6 @@ DtoPopUp.withdraw()
 RefreshFpl()
 
 while(not KillApp):
-  if SimulationActive:
-    SimulationStep()
+  SimulationStep()
   home.update()
   minor += 1
