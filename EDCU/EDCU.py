@@ -47,8 +47,6 @@ class EDCU:
     self.HdgDataFrame.grid(row=1,column=1, padx=10, pady=10)
     self.LblHdg = tk.Label(master=self.HdgDataFrame, text="0 °", font=self.DefaultFontTuple, foreground='black', textvariable=self.Hdg)
     self.LblHdg.grid(row=0,column=0, padx=10, pady=10)
-    self.LblRoll = tk.Label(master=self.HdgDataFrame, text="0 °", font=self.DefaultFontTuple, foreground='black', textvariable=self.Hdg)
-    self.LblRoll.grid(row=0,column=1, padx=10, pady=10)
     self.FplList = tk.Text(master=self.Screen, width=70,state="disabled", font=self.DefaultFontTuple)
     self.FplList.grid(row=0,column=2, rowspan=4, sticky="news")
 
@@ -56,4 +54,4 @@ class EDCU:
     self.PposLat.set(value = str(180/3.14 * Data.Lat)[0:6])
     self.PposLon.set(str(180/3.14 *Data.Lon)[0:6])
     self.Gs.set(str(Data.GS/1852*3600)[0:4])
-    self.Hdg.set(str(180/3.14 *Data.Hdg)[0:4])
+    self.Hdg.set(str(180/3.14 *Data.Hdg)[0:4] + ' °')

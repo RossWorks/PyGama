@@ -16,7 +16,7 @@ minor : int = 0
 FlightPlan = FMS.FlightPlan.FlightPlan(PposLat=math.radians(45.5),
                             PposLon=math.radians(8.7))
 
-FlightController = HELO.FCS.FCS(Mode=1, P=0.5, I=0.0, D=0.0)
+FlightController = HELO.FCS.FCS(Mode=0, P=0.5, I=0.0, D=0.0)
 
 FlyingThing = HELO.Helicopter.Helicopter(Lat = math.radians(45.5),
                                          Lon = math.radians(8.70))
