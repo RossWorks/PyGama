@@ -19,6 +19,7 @@ class FCS:
     self.SelHdg = np.int32(0)
     self.CurrHdg = np.float64(0.0)
     self.SteerCmd = np.float64(0.0)
+    self.FmsRollSteer = np.float64(0.0)
   
   def __str__(self) -> str:
     output   = "Selected HDG = " + str(np.rad2deg(self.SelHdg)) + '\n'
@@ -27,7 +28,12 @@ class FCS:
     return output
   
   def GetHdgModeRollCmd(self) -> float:
-    RawData = self.P * (self.SelHdg - self.CurrHdg)
+    DeltaHdg = self.SelHdg - self.CurrHdg
+    if DeltaHdg > np.pi:
+      DeltaHdg -= 2*np.pi
+    elif DeltaHdg <  (-1 * np.pi):
+      DeltaHdg += 2*np.pi
+    RawData = self.P * (DeltaHdg)
     if RawData > np.deg2rad(25):
       RawData = np.deg2rad(25)
     elif RawData < np.deg2rad(-25):
@@ -48,4 +54,6 @@ class FCS:
       self.SteerCmd = 0.0
     elif self.Mode == 1:
       self.SteerCmd = self.GetHdgModeRollCmd()
+    elif self.Mode == 2:
+      return self.FmsRollSteer
     return self.SteerCmd

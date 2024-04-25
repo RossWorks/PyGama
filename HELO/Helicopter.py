@@ -50,6 +50,10 @@ class Helicopter:
     else:
       AngSpeed = np.float64(0.0)
     self.Hdg += AngSpeed * self.DeltaTime
+    if self.Hdg > (2*np.pi):
+      self.Hdg -= (2*np.pi)
+    elif self.Hdg <= 0:
+      self.Hdg += (2*np.pi)      
     self.Lat += self.V * np.cos(self.Hdg) * self.DeltaTime / EARTH_RADIUS
     self.Lon += self.V * np.sin(self.Hdg) * self.DeltaTime / (EARTH_RADIUS * np.cos(self.Lat))
     self.SimStep += 1

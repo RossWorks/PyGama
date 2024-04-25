@@ -1,5 +1,6 @@
 from . import FlightPlan 
 import numpy as np
+from . import Steering
 
 
 class BestData:
@@ -7,12 +8,13 @@ class BestData:
   lon : np.float64
   Speed : np.float64
   Heading : np.float64
-
+  SteerCmd : np.float64
   def __init__(self) -> None:
     self.lat = np.float64(0.0)
     self.lon = np.float64(0.0)
     self.Speed = np.float64(0.0)
     self.Heading = np.float64(0.0)
+    self.SteerCmd = np.float64(0.0)
 
 class FMS:
 
@@ -20,9 +22,21 @@ class FMS:
     self.HeloState = BestData()
     self.FlightPlan = FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
                                             PposLon=self.HeloState.lon)
+    self.SteerMachine = Steering.SteerMachine()
   
   def ElaborationStep(self):
-    pass
+    if len(self.FlightPlan.ExpandedWaypoints) < 2:
+      return 0
+    self.SteerMachine.MyLat = self.HeloState.lat
+    self.SteerMachine.MyLon = self.HeloState.lon
+    self.SteerMachine.MyHdg = self.HeloState.Heading
+    self.SteerMachine.UpdateDestination(DestLat=self.FlightPlan.ExpandedWaypoints[1].Lat,
+                                        DestLon=self.FlightPlan.ExpandedWaypoints[1].Lon)
+    self.HeloState.SteerCmd = self.SteerMachine.GetRollSteer()
+    if self.SteerMachine.ToWptIsSeq():
+      self.FlightPlan.Waypoints.pop(0)
+      self.FlightPlan.RecomputeExpFp()
+    
 
   def InsertWpInAfpl(self, Wpt : FlightPlan.FplWaypoint,
                InsertInPos : int = FlightPlan.APPEND_INDEX):

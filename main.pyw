@@ -16,11 +16,11 @@ minor : int = 0
 
 Navigator = FMS.FMS.FMS()
 
-FlightController = HELO.FCS.FCS(Mode=0, P=0.5, I=0.0, D=0.0)
+FlightController = HELO.FCS.FCS(Mode=2, P=0.5, I=0.0, D=0.0)
 
 FlyingThing = HELO.Helicopter.Helicopter(Lat = math.radians(45.5),
                                          Lon = math.radians(8.70))
-FlyingThing.V = 60 * 1852 / 3600
+FlyingThing.V = 180 * 1852 / 3600
 
 def SimulationStep():
   global minor, FlightController, FlyingThing, SimulationActive
@@ -30,6 +30,7 @@ def SimulationStep():
                             Gs = FlyingThing.V)
   Navigator.ElaborationStep()
   FlightController.SetCurrHdg(CurrHdg=Navigator.HeloState.Heading)
+  FlightController.SetFmsRollSteer(CmdFromFms=Navigator.HeloState.SteerCmd)
   NewRoll = FlightController.ExecuteStep()
   if SimulationActive:
     FlyingThing.SetRollAngle(NewRoll=NewRoll)
@@ -43,6 +44,7 @@ def SimulationStep():
   ProgressReport.Update(FMS2EDCUData)
   if minor % 3000 == 0:
     DisplayUnit.RefreshFpl(Navigator.FlightPlan.ExpandedWaypoints)
+    DisplayUnit.MapOrientation = Navigator.HeloState.Heading + math.radians(90)
 
 def SetNewHdgCmd():
   FlightController.SelHdg = math.radians(float(TxtSelHdg.get()))
