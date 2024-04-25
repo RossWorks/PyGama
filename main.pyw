@@ -20,8 +20,7 @@ FlightController = HELO.FCS.FCS(Mode=0, P=0.5, I=0.0, D=0.0)
 
 FlyingThing = HELO.Helicopter.Helicopter(Lat = math.radians(45.5),
                                          Lon = math.radians(8.70))
-FlyingThing.VNS = 60 * 1852 / 3600
-FlyingThing.VEW = .5* 60 * 1852 / 3600
+FlyingThing.V = 60 * 1852 / 3600
 
 def SimulationStep():
   global minor, FlightController, FlyingThing
@@ -33,7 +32,7 @@ def SimulationStep():
   FMS2EDCUData = EDCU.EDCU.EDCUdata(Lat=FlyingThing.Lat,
                                     Lon=FlyingThing.Lon,
                                     Hdg=FlyingThing.Hdg,
-                                    GS=math.sqrt(FlyingThing.VEW**2 + FlyingThing.VNS**2),
+                                    GS=FlyingThing.V,
                                     BankCmd=FlyingThing.bank)
   ProgressReport.Update(FMS2EDCUData)
   if minor % 1000 == 0:

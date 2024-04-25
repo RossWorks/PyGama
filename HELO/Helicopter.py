@@ -8,8 +8,7 @@ class Helicopter:
   Lat : np.float64
   Lon : np.float64
   Hdg : np.float64
-  VNS : np.float64
-  VEW : np.float64
+  V   : np.float64
   bank: np.float64
   SimStep : np.uint32
   DeltaTime = np.float64(0.001)
@@ -18,8 +17,7 @@ class Helicopter:
     self.Lat = np.float64(Lat)
     self.Lon = np.float64(Lon)
     self.Hdg = np.float64(0.0)
-    self.VNS = np.float64(0.0)
-    self.VEW = np.float64(0.0)
+    self.V   = np.float64(0.0)
     self.bank = np.float64(0.0)
     self.SimStep = np.uint32(0)
 
@@ -39,16 +37,19 @@ class Helicopter:
     self.bank = NewRoll
 
   def SetSpeed(self, NewSpeed) -> None:
-    self.VEW = NewSpeed * np.sin(self.Hdg)
-    self.VNS = NewSpeed * np.cos(self.Hdg)
+    self.V = NewSpeed
 
   def SetHeading(self, NewHeading) -> None:
     self.Hdg = NewHeading
 
   def SimulationStep(self) -> None:
-    self.VNS += Gravity * np.tan(self.bank) * self.DeltaTime * np.sin(self.Hdg)
-    self.VEW += Gravity * np.tan(self.bank) * self.DeltaTime * np.cos(self.Hdg)
-    self.Lat += self.VNS * self.DeltaTime / EARTH_RADIUS
-    self.Lon += self.VEW * self.DeltaTime / (EARTH_RADIUS * np.cos(self.Lat))
-    self.Hdg = np.arctan2(self.VEW, self.VNS)
+    NormAcc = Gravity * np.tan(self.bank)
+    TurnRadius = np.power(self.V, 2) / NormAcc
+    if np.isfinite(TurnRadius):
+      AngSpeed = np.sqrt(NormAcc/TurnRadius) * np.sign(TurnRadius)
+    else:
+      AngSpeed = np.float64(0.0)
+    self.Hdg += AngSpeed * self.DeltaTime
+    self.Lat += self.V * np.cos(self.Hdg) * self.DeltaTime / EARTH_RADIUS
+    self.Lon += self.V * np.sin(self.Hdg) * self.DeltaTime / (EARTH_RADIUS * np.cos(self.Lat))
     self.SimStep += 1
