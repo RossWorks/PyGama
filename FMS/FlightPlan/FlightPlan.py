@@ -3,11 +3,12 @@ if __name__ == "__main__":
   print("Standalone operation NOT ALLOWED")
   exit()
 
-from . import FplWaypoint, GeoSolver
+from . import FplWaypoint
 from CDS import GamaWaypoint
+from FMS.Common import GeoSolver
 
 FPL_MAX_SIZE : int = 200
-
+ACHIEVEMENT_THRS : float = 0.5 * 1852
 APPEND_INDEX : int = 0
 
 class FlightPlan:
@@ -39,6 +40,15 @@ class FlightPlan:
         output += str(Counter).rjust(3) + " --> " + str(Waypoint)
         Counter += 1
     return output
+  
+  def CheckAchievement(self, PposLat : float, PposLon : float) -> bool:
+    if len(self.Waypoints) < 2:
+      return False
+    Distance2Go = GeoSolver.GreatCircleDistance(PposLat,PposLon, self.ExpandedWaypoints[1].Lat,self.ExpandedWaypoints[1].Lon)
+    if Distance2Go > ACHIEVEMENT_THRS:
+      return False
+    self.RemoveWp(DeleteIndex=1)
+    return True
   
   def FormatForFile(self) -> str:
     output : str = ""

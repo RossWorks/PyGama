@@ -1,6 +1,5 @@
-from . import FlightPlan 
+from . import FlightPlan, Steering, Common
 import numpy as np
-from . import Steering
 
 
 class BestData:
@@ -20,33 +19,24 @@ class FMS:
 
   def __init__(self) -> None:
     self.HeloState = BestData()
-    self.FlightPlan = FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
-                                            PposLon=self.HeloState.lon)
-    self.SteerMachine = Steering.SteerMachine()
+    self.FlightPlan = FlightPlan.FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
+                                                       PposLon=self.HeloState.lon)
+    self.SteerMachine = Steering.Steering.SteerMachine()
   
   def ElaborationStep(self):
-    if len(self.FlightPlan.ExpandedWaypoints) < 2:
-      return 0
-    self.SteerMachine.MyLat = self.HeloState.lat
-    self.SteerMachine.MyLon = self.HeloState.lon
-    self.SteerMachine.MyHdg = self.HeloState.Heading
-    self.SteerMachine.UpdateDestination(DestLat=self.FlightPlan.ExpandedWaypoints[1].Lat,
-                                        DestLon=self.FlightPlan.ExpandedWaypoints[1].Lon)
-    self.HeloState.SteerCmd = self.SteerMachine.GetRollSteer()
-    if self.SteerMachine.ToWptIsSeq():
-      self.FlightPlan.Waypoints.pop(0)
-      self.FlightPlan.RecomputeExpFp()
-    
+    self.FlightPlan.CheckAchievement(PposLat=self.HeloState.lat,
+                                     PposLon=self.HeloState.lon)
+    self.HeloState.SteerCmd = self.SteerExecutionStep()    
 
   def InsertWpInAfpl(self, Wpt : FlightPlan.FplWaypoint,
-               InsertInPos : int = FlightPlan.APPEND_INDEX):
+                     InsertInPos : int = FlightPlan.FlightPlan.APPEND_INDEX):
     self.FlightPlan.InsertWp(Wpt=Wpt, InsertInPos=InsertInPos)
   
   def RemoveWpFromAfpl(self,DeleteIndex : int):
     self.FlightPlan.RemoveWp(DeleteIndex=DeleteIndex)
 
   def DeselectAfpl(self):
-    self.FlightPlan = FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
+    self.FlightPlan = FlightPlan.FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
                                             PposLon=self.HeloState.lon)
     
   def LoadUsrFpl(self, FilePath):
@@ -82,3 +72,14 @@ class FMS:
     self.HeloState.lon = np.float64(Lon)
     self.HeloState.Heading = np.float64(Hdg)
     self.HeloState.Speed = np.float64(Gs)
+
+  def SteerExecutionStep(self) -> np.float64:
+    if len(self.FlightPlan.ExpandedWaypoints) < 2:
+      return np.float64(0.0)
+    self.SteerMachine.UpdatePpos(lat = self.HeloState.lat,
+                                 lon = self.HeloState.lon,
+                                 hdg = self.HeloState.Heading)
+    self.SteerMachine.UpdateDestination(DestLat=self.FlightPlan.ExpandedWaypoints[1].Lat,
+                                        DestLon=self.FlightPlan.ExpandedWaypoints[1].Lon)
+    SteerCmd = self.SteerMachine.GetRollSteer()
+    return SteerCmd

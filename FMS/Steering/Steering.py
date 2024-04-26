@@ -1,5 +1,5 @@
 import numpy as np
-from . import GeoSolver
+from ..Common import GeoSolver
 
 class SteerMachine:
     
@@ -13,6 +13,11 @@ class SteerMachine:
   def UpdateDestination(self, DestLat, DestLon):
     self.DestLat = np.float64(DestLat)
     self.DestLon = np.float64(DestLon)
+
+  def UpdatePpos(self, lat : np.float64, lon : np.float64, hdg : np.float64):
+    self.MyHdg = hdg
+    self.MyLat = lat
+    self.MyLon = lon
 
   def GetRollSteer(self) -> np.float64:
     TgtHdg = GeoSolver.GreatCircleInitAz(LatFrom= self.MyLat, LonFrom= self.MyLon,
