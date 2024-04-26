@@ -80,11 +80,11 @@ def RefreshFpl():
 ClassList : list[str] = []
 TypeList  : list[str] = []
 
-for key in FMS.FplWaypoint.ClassDict:
-  ClassList.append(FMS.FplWaypoint.ClassDict[key])
+for key in FMS.FlightPlan.FlightPlan.FplWaypoint.ClassDict:
+  ClassList.append(FMS.FlightPlan.FlightPlan.FplWaypoint.ClassDict[key])
 
-for key in FMS.FplWaypoint.TypeDict:
-  TypeList.append(FMS.FplWaypoint.TypeDict[key])
+for key in FMS.FlightPlan.FlightPlan.FplWaypoint.TypeDict:
+  TypeList.append(FMS.FlightPlan.FlightPlan.FplWaypoint.TypeDict[key])
 
 def DeleteFpl():
   print("Deactivation of Active Flight Plan")

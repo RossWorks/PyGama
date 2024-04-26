@@ -3,8 +3,9 @@ if __name__ == "__main__":
   print("Standalone operation NOT ALLOWED")
   exit()
 
-from . import FplWaypoint, GeoSolver
+from . import FplWaypoint
 from CDS import GamaWaypoint
+from FMS.Common import GeoSolver
 
 FPL_MAX_SIZE : int = 200
 

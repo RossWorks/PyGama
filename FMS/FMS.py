@@ -1,6 +1,5 @@
-from . import FlightPlan 
+from . import FlightPlan, Steering, Common
 import numpy as np
-from . import Steering
 
 
 class BestData:
@@ -20,9 +19,9 @@ class FMS:
 
   def __init__(self) -> None:
     self.HeloState = BestData()
-    self.FlightPlan = FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
-                                            PposLon=self.HeloState.lon)
-    self.SteerMachine = Steering.SteerMachine()
+    self.FlightPlan = FlightPlan.FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
+                                                       PposLon=self.HeloState.lon)
+    self.SteerMachine = Steering.Steering.SteerMachine()
   
   def ElaborationStep(self):
     if len(self.FlightPlan.ExpandedWaypoints) < 2:
@@ -39,14 +38,14 @@ class FMS:
     
 
   def InsertWpInAfpl(self, Wpt : FlightPlan.FplWaypoint,
-               InsertInPos : int = FlightPlan.APPEND_INDEX):
+                     InsertInPos : int = FlightPlan.FlightPlan.APPEND_INDEX):
     self.FlightPlan.InsertWp(Wpt=Wpt, InsertInPos=InsertInPos)
   
   def RemoveWpFromAfpl(self,DeleteIndex : int):
     self.FlightPlan.RemoveWp(DeleteIndex=DeleteIndex)
 
   def DeselectAfpl(self):
-    self.FlightPlan = FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
+    self.FlightPlan = FlightPlan.FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
                                             PposLon=self.HeloState.lon)
     
   def LoadUsrFpl(self, FilePath):

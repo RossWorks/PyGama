@@ -1,5 +1,5 @@
 import numpy as np
-from . import GeoSolver
+from ..Common import GeoSolver
 
 class SteerMachine:
     
