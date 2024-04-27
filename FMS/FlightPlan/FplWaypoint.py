@@ -14,6 +14,12 @@ ClassDict : dict [int : str] = {0 : "------",
                                 4 : "TACAN",
                                 5 : "VORTAC"}
 
+ReprType : dict [int : str] ={0 : "FROM WPT",
+                              1 : "TO WPT",
+                              2 : "ENR WPT",
+                              3 : "ER DISC",
+                              -1 : "NULL"}
+
 class FplWaypoint:
   Id      : int
   Name    : str
@@ -29,7 +35,8 @@ class FplWaypoint:
                Class : int = 0,
                Lat : float = 0.0,
                Lon : float = 0.0,
-               isFlyOver : bool = False) -> None:
+               isFlyOver : bool = False,
+               WpCat : int = 2) -> None:
     self.Id      = Id
     self.Name    = Name
     self.Type    = Type
@@ -37,6 +44,7 @@ class FplWaypoint:
     self.Lat     = Lat
     self.Lon     = Lon
     self.FlyOver = isFlyOver
+    self.WpReprCat = WpCat
 
   def __repr__(self) -> str:
     output : str = ""

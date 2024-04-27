@@ -128,7 +128,7 @@ def GreatCircleDistance(LatFrom : float, LonFrom : float,
   sin_phi2 = math.sin(LatTo)
   cos_phi2 = math.cos(LatTo)
   delta_lambda = LonTo - LonFrom
-  delta_sigma  = math.acos(sin_phi1*sin_phi2 + cos_phi1*cos_phi2*delta_lambda)
+  delta_sigma  = math.acos(sin_phi1*sin_phi2 + cos_phi1*cos_phi2*math.cos(delta_lambda))
   distance = EARTH_RADIUS * delta_sigma
   return distance
 

@@ -36,12 +36,8 @@ def SimulationStep():
     FlyingThing.SetRollAngle(NewRoll=NewRoll)
     FlyingThing.SimulationStep()
   DisplayUnit.MapCenter = [Navigator.HeloState.lat, Navigator.HeloState.lon]
-  FMS2EDCUData = EDCU.EDCU.EDCUdata(Lat=Navigator.HeloState.lat,
-                                    Lon=Navigator.HeloState.lon,
-                                    Hdg=Navigator.HeloState.Heading,
-                                    GS=Navigator.HeloState.Speed,
-                                    BankCmd=0.0)
-  ProgressReport.Update(FMS2EDCUData)
+  Nav2Edcudata = Navigator.DataForEDCU()
+  ProgressReport.Update(Nav2Edcudata)
   if minor % 3000 == 0:
     DisplayUnit.RefreshFpl(Navigator.FlightPlan.ExpandedWaypoints)
     DisplayUnit.MapOrientation = Navigator.HeloState.Heading + math.radians(90)
