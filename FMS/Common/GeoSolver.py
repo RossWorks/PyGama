@@ -122,13 +122,15 @@ def XYZ2LatLonHeight(X : float, Y: float, Z : float) -> list[float]:
   return output
 
 def GreatCircleDistance(LatFrom : float, LonFrom : float,
-                        LatTo   : float, LonTo   : float) -> float:
-  sin_phi1 = math.sin(LatFrom)
-  cos_phi1 = math.cos(LatFrom)
-  sin_phi2 = math.sin(LatTo)
-  cos_phi2 = math.cos(LatTo)
+                        LatTo   : float, LonTo   : float) -> np.float64:
+  if np.abs(LatFrom - LatTo) < 1e-8 and np.abs(LonFrom - LonTo) < 1e-8:
+    return np.float64(0.0)
+  sin_phi1 = np.sin(LatFrom)
+  cos_phi1 = np.cos(LatFrom)
+  sin_phi2 = np.sin(LatTo)
+  cos_phi2 = np.cos(LatTo)
   delta_lambda = LonTo - LonFrom
-  delta_sigma  = math.acos(sin_phi1*sin_phi2 + cos_phi1*cos_phi2*math.cos(delta_lambda))
+  delta_sigma  = np.arccos(sin_phi1*sin_phi2 + cos_phi1*cos_phi2*np.cos(delta_lambda))
   distance = EARTH_RADIUS * delta_sigma
   return distance
 
@@ -179,3 +181,17 @@ def GreatCircleDirect(LatFrom : float, LonFrom : float,
   D = cos_phi1*cos_sigma_12 - sin_phi1*sin_sigma_12*cos_faz
   LonDest = LonFrom + math.atan2(N,D)
   return [LatDest, LonDest]
+
+
+def GreatCircleCrossDistance(LatFrom: np.float64, LonFrom: np.float64,
+                             LatTo: np.float64, LonTo:np.float64,
+                             PposLat: np.float64, PposLon: np.float64) -> np.float64:
+    delta_13 = GreatCircleDistance(LatFrom=LatFrom, LonFrom=LonFrom,
+                                   LatTo=PposLat, LonTo=PposLon) / EARTH_RADIUS
+    theta_13 = GreatCircleInitAz(LatFrom=LatFrom, LonFrom=LonFrom,
+                                 LatTo=PposLat, LonTo=PposLon)
+    theta_12 = GreatCircleInitAz(LatFrom=LatFrom, LonFrom=LonFrom,
+                                 LatTo=LatTo, LonTo=LonTo)
+
+    XTE = np.arcsin(np.sin(delta_13) + np.sin(theta_13 - theta_12)) * EARTH_RADIUS
+    return XTE

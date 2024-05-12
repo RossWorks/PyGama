@@ -14,6 +14,8 @@ ClassDict : dict [int : str] = {0 : "------",
                                 4 : "TACAN",
                                 5 : "VORTAC"}
 
+
+
 class FplWaypoint:
   Id      : int
   Name    : str

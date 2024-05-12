@@ -43,7 +43,7 @@ def SimulationStep():
                                     BankCmd=0.0)
   ProgressReport.Update(FMS2EDCUData)
   if minor % 3000 == 0:
-    DisplayUnit.RefreshFpl(Navigator.FlightPlan.ExpandedWaypoints)
+    RefreshFpl()
     DisplayUnit.MapOrientation = Navigator.HeloState.Heading + math.radians(90)
 
 def SetNewHdgCmd():
@@ -204,8 +204,6 @@ def LoadFPL():
 def TerminateApp():
   global KillApp
   KillApp = True
-  home.destroy()
-  exit()
 
 home = tk.Tk()
 home.protocol("WM_DELETE_WINDOW", TerminateApp)
@@ -385,3 +383,6 @@ while(not KillApp):
   SimulationStep()
   home.update()
   minor += 1
+else:
+  home.destroy()
+  exit()
