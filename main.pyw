@@ -210,7 +210,7 @@ def TerminateApp():
 home = tk.Tk()
 home.protocol("WM_DELETE_WINDOW", TerminateApp)
 home.title("PyGama")
-home.geometry("1200x800")
+#home.geometry("1200x850")
 tk.Grid.rowconfigure(home,0, weight=1)
 tk.Grid.columnconfigure(home,0, weight=1)
 
@@ -271,7 +271,7 @@ GamaList = tk.Text(master=FplWorkArea, width=120,state="disabled", font=DefaultF
 GamaList.grid(row=0,column=0, sticky="news")
 FplWorkArea.add(GamaList, text="GAMA PROTOCOL")
 DisplayUnit = CDS.Display.Display(MasterWidget=FplWorkArea)
-FplWorkArea.add(DisplayUnit.DisplayWidget, text="CDS MAP")
+FplWorkArea.add(DisplayUnit.GetTkinterWidget(), text="CDS MAP")
 
 InsertWpPopUp = tk.Toplevel(master=home)
 InsertWpPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)
