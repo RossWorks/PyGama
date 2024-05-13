@@ -75,6 +75,13 @@ class FMS:
     FilePtr.writelines(FileContent)
     FilePtr.close()
 
+  def SwitchFlyByState(self, Index):
+    self.FlightPlan.Waypoints[Index].FlyOver = not self.FlightPlan.Waypoints[Index].FlyOver
+    self.FlightPlan.RecomputeExpFp()
+
+  def GetFlyByState(self, Index) -> bool:
+    return self.FlightPlan.Waypoints[Index].FlyOver
+
   def UpdateHeloState(self, Lat : float,
                       Lon : float,
                       Hdg : float,

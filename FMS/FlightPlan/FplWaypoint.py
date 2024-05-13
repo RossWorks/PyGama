@@ -17,8 +17,8 @@ ClassDict : dict [int : str] = {0 : "------",
 ReprType : dict [int : str] ={0 : "FROM WPT",
                               1 : "TO WPT",
                               2 : "ENR WPT",
-                              3 : "ER DISC",
-                              -1 : "NULL"}
+                              3 : "ERASABLE DISC",
+                             -1 : "NULL"}
 
 class FplWaypoint:
   Id      : int

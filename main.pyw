@@ -121,6 +121,20 @@ def MakeInternalDirTo():
   DtoPopUp.withdraw()
   RefreshFpl()
 
+def ShowFlyByPopUp():
+  global WpsNames
+  TmpList = []
+  for point in Navigator.FlightPlan.Waypoints:
+    TmpList.append(point.Name)
+  WpsNames.set(TmpList)
+  FlyByPopUp.deiconify()
+
+def SetFlyBy():
+  IndexOfFlyBy = FplList.curselection()
+  Navigator.SwitchFlyByState(Index=IndexOfFlyBy[0])
+  FlyByPopUp.withdraw()
+  RefreshFpl()
+
 def ShowCdsAspectPopUp():
   SetCdsRotationPopUp.deiconify()
 
@@ -235,6 +249,7 @@ FplMenu.add_command(label="Deactivate FPL", command=DeleteFpl, image=DeactFPL_Ic
 FplMenu.add_command(label="Direct To...", state="active", image=DTO_Icon, compound="left", font=MenuFontTuple,command=ShowDtoPopUp)
 FplMenu.add_command(label="Insert Waypoint...", image=InsertWp_Icon, compound="left", font=MenuFontTuple, command=ShowInsertWpPopUp)
 FplMenu.add_command(label="Delete Waypoint...", image=DeleteWp_Icon, compound="left", font=MenuFontTuple,command=ShowDeleteWpPopUp)
+FplMenu.add_command(label="Set Fly-By...", image=SAR_Icon, compound="left", font=MenuFontTuple,command=ShowFlyByPopUp)
 FplMenu.add_command(label="SAR...", state="disabled", image=SAR_Icon, compound="left", font=MenuFontTuple)
 FplMenu.add_command(label="Save FPL...", state="active", image=SaveFpl_Icon, compound="left", font=MenuFontTuple, command=SaveFPL)
 FplMenu.add_command(label="Load FPL...", state="active", image=LoadFpl_Icon, compound="left", font=MenuFontTuple, command=LoadFPL)
@@ -374,6 +389,17 @@ CmdIntDto.grid(row=1,column=1)
 CmdExtDto = tk.Button(master=DtoPopUp, state="disabled", text="EXT D-TO", font=DefaultFontTuple)
 CmdExtDto.grid(row=0,column=1)
 DtoPopUp.withdraw()
+
+FlyByPopUp = tk.Toplevel(master=home)
+FlyByPopUp.protocol("WM_DELETE_WINDOW", FlyByPopUp.withdraw)
+FlyByGroup = tk.LabelFrame(master=FlyByPopUp, text="SET FLY-BY/FLY-OVER", font=DefaultFontTuple)
+FlyByGroup.grid(row=0,column=0)
+FplList = tk.Listbox(master=FlyByGroup, font=DefaultFontTuple, listvariable=WpsNames,
+                     selectmode=tk.SINGLE)
+FplList.grid(row=0,column=0)
+CmdSetFlyBy = tk.Button(master=FlyByPopUp, text="FLY-BY", font=DefaultFontTuple, command=SetFlyBy)
+CmdSetFlyBy.grid(row=1,column=1)
+FlyByPopUp.withdraw()
 
 RefreshFpl()
 

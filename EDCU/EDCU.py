@@ -25,11 +25,31 @@ class FplEntryWidget:
   
   def __init__(self, master : tk.Widget) -> None:
     self.DefaultFontTuple = ("B612 mono", 12, "normal")
-    self.Slot = tk.Frame(master=master)
-    self.WpName = tk.Label(master=self.Slot, font=self.DefaultFontTuple)
-    self.WpName.grid(row=0,column=0,rowspan=2, padx=10)
-    self.FlyOverFlag = tk.Label(master=self.Slot, text='F', font=self.DefaultFontTuple, background='cyan')
+    self.NeutralBgColor = '#2c3e50'
+
+
+    self.Slot = tk.Frame(master=master, background=self.NeutralBgColor, padx=5, pady=15)
+    self.WpName = tk.Label(master=self.Slot, font=self.DefaultFontTuple, width=6, anchor='w', background=self.NeutralBgColor)
+    self.WpName.grid(row=0,column=0, padx=10, sticky='w')
+    self.FlyOverFlag = tk.Label(master=self.Slot, text=' ', font=self.DefaultFontTuple, background=self.NeutralBgColor)
     self.FlyOverFlag.grid(row=0,column =1, padx=10)
+
+  def SetAsFrom(self):
+    self.WpName.config(foreground='yellow')
+
+  def SetAsTo(self):
+    self.WpName.config(foreground='magenta')
+
+  def SetFlyOver(self):
+    self.FlyOverFlag.config(text='F', background='cyan')
+
+  def SetFlyBy(self):
+    self.FlyOverFlag.config(text=' ', background=self.NeutralBgColor)
+
+  def SetAsBlank(self):
+    self.FlyOverFlag.config(text=' ', background=self.NeutralBgColor)
+    self.WpName.config(text=6*' ', background=self.NeutralBgColor)
+
 
 
 class EDCU:
@@ -110,18 +130,17 @@ class EDCU:
       if index < len(Data.Fpl):
         self.TmpList[index].WpName.config(text=Data.Fpl[index].Name)
         if Data.Fpl[index].WpReprCat == 0:
-          self.TmpList.WpName.config(foreground = 'yellow')
+          self.TmpList[index].SetAsFrom()
         elif Data.Fpl[index].WpReprCat == 1:
-          self.TmpList[index].WpName.config(foreground='magenta')
+          self.TmpList[index].SetAsTo()
         else:
           self.TmpList[index].WpName.config(foreground='black')
         if not Data.Fpl[index].FlyOver or Data.Fpl[index].WpReprCat == 0:
-          self.TmpList[index].FlyOverFlag.grid_remove()
+          self.TmpList[index].SetFlyBy()
         else:
-          self.TmpList[index].FlyOverFlag.grid(row=0,column=1)
+          self.TmpList[index].SetFlyOver()
       else:
-        self.TmpList[index].FlyOverFlag.grid_remove()
-        self.TmpList[index].WpName.config(text="")
+        self.TmpList[index].SetAsBlank()
 
 def Sec2hh_mm(seconds : int) -> str:
   if seconds != seconds:
