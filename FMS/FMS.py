@@ -1,19 +1,23 @@
 from . import FlightPlan, Steering, Common
+from EDCU import EDCU
 import numpy as np
 
 
 class BestData:
-  lat : np.float64
-  lon : np.float64
-  Speed : np.float64
-  Heading : np.float64
-  SteerCmd : np.float64
+
   def __init__(self) -> None:
     self.lat = np.float64(0.0)
     self.lon = np.float64(0.0)
     self.Speed = np.float64(0.0)
     self.Heading = np.float64(0.0)
     self.SteerCmd = np.float64(0.0)
+    self.Time2Go_To = np.int32(0)
+    self.Distance2Go_To = np.float64(0.0)
+    self.Time2Go_Next = np.int32(0)
+    self.Distance2Go_Next = np.float64(0.0)
+    self.Time2Go_Dest = np.int32(0)
+    self.Distance2Go_Dest = np.float64(0.0)
+
 
 class FMS:
 
@@ -64,6 +68,13 @@ class FMS:
     FilePtr.writelines(FileContent)
     FilePtr.close()
 
+  def SwitchFlyByState(self, Index):
+    self.FlightPlan.Waypoints[Index].FlyOver = not self.FlightPlan.Waypoints[Index].FlyOver
+    self.FlightPlan.RecomputeExpFp()
+
+  def GetFlyByState(self, Index) -> bool:
+    return self.FlightPlan.Waypoints[Index].FlyOver
+
   def UpdateHeloState(self, Lat : float,
                       Lon : float,
                       Hdg : float,
@@ -83,3 +94,41 @@ class FMS:
                                         DestLon=self.FlightPlan.ExpandedWaypoints[1].Lon)
     SteerCmd = self.SteerMachine.GetRollSteer()
     return SteerCmd
+
+  def DataForEDCU(self) -> EDCU.EDCUdata:
+    output = EDCU.EDCUdata()
+    output.Lat = self.HeloState.lat
+    output.Lon = self.HeloState.lon
+    output.GS  = self.HeloState.Speed
+    output.Hdg = self.HeloState.Heading
+    output.Distance2Go_To   = self.HeloState.Distance2Go_To
+    output.Distance2Go_Next = self.HeloState.Distance2Go_Next
+    output.Distance2Go_Dest = self.HeloState.Distance2Go_Dest
+    output.Time2Go_To   = self.HeloState.Time2Go_To
+    output.Time2Go_Next = self.HeloState.Time2Go_Next
+    output.Time2Go_Dest = self.HeloState.Time2Go_Dest
+    output.Fpl = self.FlightPlan.Waypoints
+    return output
+
+  def PerfoStep(self):
+    if len(self.FlightPlan.Waypoints) < 2:
+      self.HeloState.Distance2Go_To = np.NaN
+      self.HeloState.Distance2Go_Next = np.NaN
+      self.HeloState.Distance2Go_Dest = np.NaN
+      self.HeloState.Time2Go_To = np.NaN
+      self.HeloState.Time2Go_Next = np.NaN
+      self.HeloState.Time2Go_Dest = np.NaN
+      return  
+    PposLat = self.HeloState.lat
+    PposLon = self.HeloState.lon
+    ToLat   = self.FlightPlan.Waypoints[1].Lat
+    ToLon   = self.FlightPlan.Waypoints[1].Lon
+    self.HeloState.Distance2Go_To = Common.GeoSolver.GreatCircleDistance(LatFrom=PposLat, LonFrom=PposLon, LatTo=ToLat, LonTo=ToLon)
+    self.HeloState.Time2Go_To = self.HeloState.Distance2Go_To / self.HeloState.Speed
+    if len(self.FlightPlan.Waypoints) > 2:
+      NextLat   = self.FlightPlan.Waypoints[2].Lat
+      NextLon   = self.FlightPlan.Waypoints[2].Lon
+      self.HeloState.Distance2Go_Next = Common.GeoSolver.GreatCircleDistance(LatFrom=ToLat, LonFrom=ToLon, LatTo=NextLat, LonTo=NextLon)
+      self.HeloState.Time2Go_Next = self.HeloState.Distance2Go_Next / self.HeloState.Speed
+    self.HeloState.Time2Go_Dest = np.NaN
+    self.HeloState.Distance2Go_Dest = np.NaN

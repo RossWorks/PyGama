@@ -70,20 +70,60 @@ class GraphWpMarker:
 class Display:
   
   def __init__(self, MasterWidget : tk.Widget) -> None:
+    self.DefaultFontTuple = ("B612 mono", 12, "normal")
+    self.SettableRanges = [5.0, 10.0, 20.0, 40.0, 80.0]
+    self.Range = 0
+    self.Frame = tk.Frame(master=MasterWidget)
+    self.ToWpName = tk.Label(master=self.Frame, font=self.DefaultFontTuple, foreground='aqua',
+                             background='black', width=6, text=6*'-')
+    self.ToWpName.grid(row=0,column=2)
+    self.Dist2Go = tk.Label(master=self.Frame, font=self.DefaultFontTuple,foreground='aqua',
+                            background='black', width=6, text=6*'-')
+    self.Dist2Go.grid(row=0,column=3)
+    self.Time2Go = tk.Label(master=self.Frame, font=self.DefaultFontTuple, foreground='aqua',
+                            background='black', width=6, text=6*'-')
+    self.Time2Go.grid(row=1,column=3)
     self.Cds = Figure(dpi=150.0, figsize=[5.0,5.0])
-    self.Cdscreen = FigureCanvasTkAgg(self.Cds, master = MasterWidget)
+    #self.Cds.set_facecolor('k')
+    #self.Cds.set_edgecolor('white')
+    self.Cdscreen = FigureCanvasTkAgg(self.Cds, master = self.Frame)
     self.CdMap = self.Cds.add_subplot(projection='polar')
     self.CdMap.set_theta_zero_location('N')
     self.CdMap.set_theta_direction(-1)
-    #CdMap.set_facecolor('k')
+    #self.CdMap.set_facecolor('k')
+    #self.CdMap.xaxis.grid(True,color='white')
     self.CdMap.axes.clear()
+    self.SetCDSRange(self.Range)
     self.DisplayWidget  = self.Cdscreen.get_tk_widget()
+    self.DisplayWidget.grid(row=2,column=0,columnspan=4)
+    self.CmdMoreRange = tk.Button(master=self.Frame, text="RNG\n+", font=self.DefaultFontTuple,
+                                  justify=tk.CENTER, command=self.IncreaseRange)
+    self.CmdMoreRange.grid(row=3,column=0)
+    self.CmdLessRange = tk.Button(master=self.Frame, text="RNG\n-", font=self.DefaultFontTuple,
+                                  justify=tk.CENTER,command=self.DecreaseRange)
+    self.CmdLessRange.grid(row=3,column=1)
     self.MapCenter      = [np.radians(45.5), np.radians(8.7)]
     self.MapOrientation = np.pi/2
     self.StoredFpl : list[GamaWaypoint.GamaWaypoint] = []
 
+
+  def SetCDSRange(self, rangeIndex: int):
+    self.Range = rangeIndex
+    self.CdMap.axes.set_rticks([self.SettableRanges[self.Range]/2, self.SettableRanges[self.Range]])
+    self.CdMap.axes.set_rmax(self.SettableRanges[self.Range])
+
+  def DecreaseRange(self):
+    if self.Range > 0:
+        self.Range -= 1
+
+
+  def IncreaseRange(self):
+    if self.Range < len(self.SettableRanges) - 1:
+        self.Range += 1
+
+
   def GetTkinterWidget(self) -> tk.Widget:
-    return self.DisplayWidget
+    return self.Frame
 
   def RefreshFpl(self, Fpl : list[GamaWaypoint.GamaWaypoint]):
     self.CdMap.clear()
@@ -103,6 +143,7 @@ class Display:
       self.CdMap.text(point.Theta, point.Rho/1852, point.Name)
     print("")
     print("")
+    self.SetCDSRange(self.Range)
     self.Cdscreen.draw()
 
   def SetCdsCenter(self, Lat : float, Lon : float, DelayUpdate : bool = False) -> bool:

@@ -65,11 +65,16 @@ class FlightPlan:
       return
     elif (InsertInPos <= 0 or InsertInPos > len(self.Waypoints)):
       print("Waypoint insertion @ line " + str(InsertInPos))
+      if InsertInPos == 2:
+        Wpt.WpReprCat = 1
+        if len(self.Waypoints) > 1:
+          self.Waypoints[1].WpReprCat = 2
       self.Waypoints.append(Wpt)
     elif (InsertInPos == 1):
       print("Substitution of FROM waypoint")
       self.Waypoints.insert(1,Wpt)
       self.Waypoints.pop(0)
+      self.Waypoints[0].WpReprCat = 0
     else:
       print("Waypoint insertion @ line " + str(InsertInPos))
       self.Waypoints.insert(InsertInPos-1, Wpt)
@@ -90,6 +95,8 @@ class FlightPlan:
                                      Lon=PposLon,
                                      isFlyOver=True)
     self.Waypoints.insert(0, PPOS)
+    self.Waypoints[0].WpReprCat = 0
+    self.Waypoints[1].WpReprCat = 1
     self.RecomputeExpFp()
 
   def RecomputeExpFp(self):

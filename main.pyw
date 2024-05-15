@@ -36,12 +36,8 @@ def SimulationStep():
     FlyingThing.SetRollAngle(NewRoll=NewRoll)
     FlyingThing.SimulationStep()
   DisplayUnit.MapCenter = [Navigator.HeloState.lat, Navigator.HeloState.lon]
-  FMS2EDCUData = EDCU.EDCU.EDCUdata(Lat=Navigator.HeloState.lat,
-                                    Lon=Navigator.HeloState.lon,
-                                    Hdg=Navigator.HeloState.Heading,
-                                    GS=Navigator.HeloState.Speed,
-                                    BankCmd=0.0)
-  ProgressReport.Update(FMS2EDCUData)
+  Nav2Edcudata = Navigator.DataForEDCU()
+  ProgressReport.Update(Nav2Edcudata)
   if minor % 3000 == 0:
     RefreshFpl()
     DisplayUnit.MapOrientation = Navigator.HeloState.Heading + math.radians(90)
@@ -123,6 +119,20 @@ def MakeInternalDirTo():
   print("Selected Wp #" + str(IndexOfDto[0]) + " for D-TO")
   Navigator.InternalDTO(WpIndex=IndexOfDto[0])
   DtoPopUp.withdraw()
+  RefreshFpl()
+
+def ShowFlyByPopUp():
+  global WpsNames
+  TmpList = []
+  for point in Navigator.FlightPlan.Waypoints:
+    TmpList.append(point.Name)
+  WpsNames.set(TmpList)
+  FlyByPopUp.deiconify()
+
+def SetFlyBy():
+  IndexOfFlyBy = FplList.curselection()
+  Navigator.SwitchFlyByState(Index=IndexOfFlyBy[0])
+  FlyByPopUp.withdraw()
   RefreshFpl()
 
 def ShowCdsAspectPopUp():
@@ -208,7 +218,7 @@ def TerminateApp():
 home = tk.Tk()
 home.protocol("WM_DELETE_WINDOW", TerminateApp)
 home.title("PyGama")
-home.geometry("1200x800")
+#home.geometry("1200x850")
 tk.Grid.rowconfigure(home,0, weight=1)
 tk.Grid.columnconfigure(home,0, weight=1)
 
@@ -219,6 +229,7 @@ SaveFpl_Icon  = tk.PhotoImage(file="./Resources/SaveFpl.png")
 LoadFpl_Icon  = tk.PhotoImage(file="./Resources/LoadFpl.png")
 DTO_Icon      = tk.PhotoImage(file="./Resources/D-TO.png")
 SAR_Icon      = tk.PhotoImage(file="./Resources/SAR.png")
+TXT_Logo      = tk.PhotoImage(file="./Resources/TXT.png")
 
 FplRepr = tk.StringVar(master = home)
 WpIsFlyOver = tk.IntVar(master=home)
@@ -231,12 +242,14 @@ ProcMenu    = tk.Menu(master=MainMenuBar, tearoff=0)
 ViewMenu    = tk.Menu(master=MainMenuBar, tearoff=0)
 SimMenu     = tk.Menu(master=MainMenuBar, tearoff=0)
 home.config(menu=MainMenuBar)
+home.iconphoto(True, TXT_Logo)
 
 MainMenuBar.add_cascade(label="ACTIVE FLIGHT PLAN",menu=FplMenu,font=MenuFontTuple)
 FplMenu.add_command(label="Deactivate FPL", command=DeleteFpl, image=DeactFPL_Icon, compound="left", font=MenuFontTuple)
 FplMenu.add_command(label="Direct To...", state="active", image=DTO_Icon, compound="left", font=MenuFontTuple,command=ShowDtoPopUp)
 FplMenu.add_command(label="Insert Waypoint...", image=InsertWp_Icon, compound="left", font=MenuFontTuple, command=ShowInsertWpPopUp)
 FplMenu.add_command(label="Delete Waypoint...", image=DeleteWp_Icon, compound="left", font=MenuFontTuple,command=ShowDeleteWpPopUp)
+FplMenu.add_command(label="Set Fly-By...", image=SAR_Icon, compound="left", font=MenuFontTuple,command=ShowFlyByPopUp)
 FplMenu.add_command(label="SAR...", state="disabled", image=SAR_Icon, compound="left", font=MenuFontTuple)
 FplMenu.add_command(label="Save FPL...", state="active", image=SaveFpl_Icon, compound="left", font=MenuFontTuple, command=SaveFPL)
 FplMenu.add_command(label="Load FPL...", state="active", image=LoadFpl_Icon, compound="left", font=MenuFontTuple, command=LoadFPL)
@@ -269,7 +282,7 @@ GamaList = tk.Text(master=FplWorkArea, width=120,state="disabled", font=DefaultF
 GamaList.grid(row=0,column=0, sticky="news")
 FplWorkArea.add(GamaList, text="GAMA PROTOCOL")
 DisplayUnit = CDS.Display.Display(MasterWidget=FplWorkArea)
-FplWorkArea.add(DisplayUnit.DisplayWidget, text="CDS MAP")
+FplWorkArea.add(DisplayUnit.GetTkinterWidget(), text="CDS MAP")
 
 InsertWpPopUp = tk.Toplevel(master=home)
 InsertWpPopUp.protocol("WM_DELETE_WINDOW", InsertWpPopUp.withdraw)
@@ -376,6 +389,17 @@ CmdIntDto.grid(row=1,column=1)
 CmdExtDto = tk.Button(master=DtoPopUp, state="disabled", text="EXT D-TO", font=DefaultFontTuple)
 CmdExtDto.grid(row=0,column=1)
 DtoPopUp.withdraw()
+
+FlyByPopUp = tk.Toplevel(master=home)
+FlyByPopUp.protocol("WM_DELETE_WINDOW", FlyByPopUp.withdraw)
+FlyByGroup = tk.LabelFrame(master=FlyByPopUp, text="SET FLY-BY/FLY-OVER", font=DefaultFontTuple)
+FlyByGroup.grid(row=0,column=0)
+FplList = tk.Listbox(master=FlyByGroup, font=DefaultFontTuple, listvariable=WpsNames,
+                     selectmode=tk.SINGLE)
+FplList.grid(row=0,column=0)
+CmdSetFlyBy = tk.Button(master=FlyByPopUp, text="FLY-BY", font=DefaultFontTuple, command=SetFlyBy)
+CmdSetFlyBy.grid(row=1,column=1)
+FlyByPopUp.withdraw()
 
 RefreshFpl()
 
