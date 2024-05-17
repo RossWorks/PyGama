@@ -19,6 +19,7 @@ class EDCUdata:
     self.Distance2Go_Next = 0.0
     self.Time2Go_Dest = 0
     self.Distance2Go_Dest = 0.0
+    self.XTE = 0.0
     self.Fpl : list[FplWaypoint.FplWaypoint] = []
 
 class FplEntryWidget:
@@ -26,10 +27,11 @@ class FplEntryWidget:
   def __init__(self, master : tk.Widget) -> None:
     self.DefaultFontTuple = ("B612 mono", 12, "normal")
     self.NeutralBgColor = '#2c3e50'
+    self.NormalForeColor = 'lime'
 
 
     self.Slot = tk.Frame(master=master, background=self.NeutralBgColor, padx=5, pady=15)
-    self.WpName = tk.Label(master=self.Slot, font=self.DefaultFontTuple, width=6, anchor='w', background=self.NeutralBgColor)
+    self.WpName = tk.Label(master=self.Slot, font=self.DefaultFontTuple, width=6, anchor='w', background=self.NeutralBgColor, foreground=self.NormalForeColor)
     self.WpName.grid(row=0,column=0, padx=10, sticky='w')
     self.FlyOverFlag = tk.Label(master=self.Slot, text=' ', font=self.DefaultFontTuple, background=self.NeutralBgColor)
     self.FlyOverFlag.grid(row=0,column =1, padx=10)
@@ -105,12 +107,19 @@ class EDCU:
     self.LblHdg = tk.Label(master=self.HdgDataFrame, text="0 °", font=self.DefaultFontTuple, foreground='black', textvariable=self.Hdg)
     self.LblHdg.grid(row=0,column=0, padx=10, pady=10)
 
+
     self.FplList = tk.LabelFrame(master=self.Screen, width=70, font=self.DefaultFontTuple, text="FLIGHT PLAN")
     self.TmpList = []
     for index in range(5):
       self.TmpList.append(FplEntryWidget(master=self.FplList))
       self.TmpList[index].Slot.grid(row=index, column=0)
     self.FplList.grid(row=0,column=2, rowspan=4, sticky="news")
+
+    self.AirData = tk.LabelFrame(master=self.Screen, text="AIR DATA", font=self.DefaultFontTuple)
+    self.AirData.grid(row=4,column=0,columnspan=2)
+    self.LblXTE = tk.Label(master=self.AirData, text="XTE: " + 6*"-", font=self.DefaultFontTuple)
+    self.LblXTE.grid(row=0,column=0)
+
 
   def Update(self, Data : EDCUdata):
     self.PposLat.set(value = Rad2Coords(Data.Lat, True))
@@ -134,13 +143,17 @@ class EDCU:
         elif Data.Fpl[index].WpReprCat == 1:
           self.TmpList[index].SetAsTo()
         else:
-          self.TmpList[index].WpName.config(foreground='black')
+          self.TmpList[index].WpName.config(foreground='lime')
         if not Data.Fpl[index].FlyOver or Data.Fpl[index].WpReprCat == 0:
           self.TmpList[index].SetFlyBy()
         else:
           self.TmpList[index].SetFlyOver()
       else:
         self.TmpList[index].SetAsBlank()
+    LblText = "XTE: " + ("L " if Data.XTE < 0 else "R ")
+    XteText = str(abs(Data.XTE/1852))
+    XteText = XteText[0:XteText.find('.')+3]
+    self.LblXTE.config(text=LblText + XteText)
 
 def Sec2hh_mm(seconds : int) -> str:
   if seconds != seconds:

@@ -12,10 +12,15 @@ class SteerMachine:
         self.DestLon = np.float64(0.0)
         self.OriginLat = np.float64(0.0)
         self.OriginLon = np.float64(0.0)
+        self.XTE = np.float64(0.0)
 
     def UpdateDestination(self, DestLat, DestLon):
         self.DestLat = np.float64(DestLat)
         self.DestLon = np.float64(DestLon)
+
+    def UpdateOrigin(self, OriginLat, OriginLon):
+        self.OriginLat = np.float64(OriginLat)
+        self.OriginLon = np.float64(OriginLon)
 
     def UpdatePpos(self, lat: np.float64, lon: np.float64, hdg: np.float64):
         self.MyHdg = hdg
@@ -23,22 +28,23 @@ class SteerMachine:
         self.MyLon = lon
 
     def GetRollSteer(self) -> np.float64:
-        TgtHdg = GeoSolver.GreatCircleInitAz(LatFrom=self.MyLat,
-                                             LonFrom=self.MyLon,
-                                             LatTo=self.DestLat,
-                                             LonTo=self.DestLon)
+        DesiredTrack = GeoSolver.GreatCircleInitAz(LatFrom=self.OriginLat,
+                                                   LonFrom=self.OriginLon,
+                                                   LatTo=self.DestLat,
+                                                   LonTo=self.DestLon)
         XTE = GeoSolver.GreatCircleCrossDistance(LatFrom=self.OriginLat,
                                                  LonFrom=self.OriginLon,
                                                  LatTo=self.DestLat,
                                                  LonTo=self.DestLon,
                                                  PposLat=self.MyLat,
                                                  PposLon=self.MyLon)
-        DeltaHdg = TgtHdg - self.MyHdg
+        self.XTE = XTE
+        DeltaHdg = DesiredTrack - self.MyHdg
         if DeltaHdg > np.pi:
             DeltaHdg -= 2 * np.pi
         elif DeltaHdg < (-1 * np.pi):
             DeltaHdg += 2 * np.pi
-        DistParam = (.0000005 * XTE)
+        DistParam = (-0.000424069 * XTE)
         if DistParam > np.deg2rad(45.0):
             DistParam = np.deg2rad(45.0)
         elif DistParam < np.deg2rad(-45.0):

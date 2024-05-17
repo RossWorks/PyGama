@@ -193,5 +193,26 @@ def GreatCircleCrossDistance(LatFrom: np.float64, LonFrom: np.float64,
     theta_12 = GreatCircleInitAz(LatFrom=LatFrom, LonFrom=LonFrom,
                                  LatTo=LatTo, LonTo=LonTo)
 
-    XTE = np.arcsin(np.sin(delta_13) + np.sin(theta_13 - theta_12)) * EARTH_RADIUS
+    XTE = np.arcsin(np.sin(delta_13) * np.sin(theta_13 - theta_12)) * EARTH_RADIUS
     return XTE
+
+if __name__ == "__main__":
+  import os
+  print("Initiating self test for " + os.path.basename(__file__))
+  A = [np.deg2rad(45.0), np.deg2rad(8.0)]
+  B = [np.deg2rad(46.0), np.deg2rad(8.0)]
+  C = [np.deg2rad(45.5), np.deg2rad(8.0)]
+  X = [np.deg2rad(45.5), np.deg2rad(7.0)]
+  Y = [np.deg2rad(45.5), np.deg2rad(9.0)]
+  print("A = " + str(np.rad2deg(A[0])) + " " + str(np.rad2deg(A[1])))
+  print("B = " + str(np.rad2deg(B[0])) + " " + str(np.rad2deg(B[1])))
+  print("C = " + str(np.rad2deg(C[0])) + " " + str(np.rad2deg(C[1])))
+  print("X = " + str(np.rad2deg(X[0])) + " " + str(np.rad2deg(X[1])))
+  print("Y = " + str(np.rad2deg(Y[0])) + " " + str(np.rad2deg(Y[1])))
+  print()
+  print("XTD of X from A-B")
+  print(GreatCircleCrossDistance(A[0],A[1],B[0],B[1],X[0],X[1])/1852.0)
+  print("XTD of Y from A-B")
+  print(GreatCircleCrossDistance(A[0],A[1],B[0],B[1],Y[0],Y[1])/1852.0)
+  print("Distance C-X")
+  print(GreatCircleDistance(C[0],C[1],X[0],X[1])/1852.0)

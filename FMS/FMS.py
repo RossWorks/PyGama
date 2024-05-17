@@ -17,6 +17,7 @@ class BestData:
     self.Distance2Go_Next = np.float64(0.0)
     self.Time2Go_Dest = np.int32(0)
     self.Distance2Go_Dest = np.float64(0.0)
+    self.XTE = np.float64(0.0)
 
 
 class FMS:
@@ -92,7 +93,10 @@ class FMS:
                                  hdg = self.HeloState.Heading)
     self.SteerMachine.UpdateDestination(DestLat=self.FlightPlan.ExpandedWaypoints[1].Lat,
                                         DestLon=self.FlightPlan.ExpandedWaypoints[1].Lon)
+    self.SteerMachine.UpdateOrigin(OriginLat=self.FlightPlan.ExpandedWaypoints[0].Lat,
+                                   OriginLon=self.FlightPlan.ExpandedWaypoints[0].Lon)
     SteerCmd = self.SteerMachine.GetRollSteer()
+    self.HeloState.XTE = self.SteerMachine.XTE
     return SteerCmd
 
   def DataForEDCU(self) -> EDCU.EDCUdata:
@@ -108,6 +112,7 @@ class FMS:
     output.Time2Go_Next = self.HeloState.Time2Go_Next
     output.Time2Go_Dest = self.HeloState.Time2Go_Dest
     output.Fpl = self.FlightPlan.Waypoints
+    output.XTE = self.HeloState.XTE
     return output
 
   def PerfoStep(self):
