@@ -1,4 +1,4 @@
-from . import FlightPlan, Steering, Common
+from . import FlightPlan, Steering, Common, DbManager
 from EDCU import EDCU
 import numpy as np
 
@@ -27,6 +27,23 @@ class FMS:
     self.FlightPlan = FlightPlan.FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
                                                        PposLon=self.HeloState.lon)
     self.SteerMachine = Steering.Steering.SteerMachine()
+    self.Database = DbManager.DbManager.Database()
+  
+  def LoadStdDb(self, FilePath : str) -> bool:
+    self.Database.Load(FilePath)
+    return self.Database == DbManager.DbManager.C_EXC_NO_ERROR
+
+
+  def GetStdDbInfo(self) -> dict:
+    output = dict()
+    output["NAME"] =  self.Database.Name
+    output["CRC"] = self.Database.CRC
+    output["CYCLE"] = "0000"
+    return output
+
+  def SearchInDatabase(self, SearchKey : str) -> list:
+    output = self.Database.Search(SearchKey)
+    return output
   
   def ElaborationStep(self):
     self.FlightPlan.CheckAchievement(PposLat=self.HeloState.lat,

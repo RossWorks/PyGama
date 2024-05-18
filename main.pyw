@@ -57,13 +57,16 @@ def StopSimulation():
   global SimulationActive
   SimulationActive = False
 
-def SetMapAspect():
-  #Gama.MapRender.SetCdsCenter(Lat=math.radians(FlightPlan.Waypoints[0].Lat),
-  #                            Lon=math.radians(FlightPlan.Waypoints[0].Lon))
-  TmpHeading_rad = math.radians(int(TxtNewBearing.get()) + 90)
-  DisplayUnit.SetMapRotation(NewHeading=TmpHeading_rad)
-  SetCdsRotationPopUp.withdraw()
-  RefreshFpl()
+def LoadStdDbCallB():
+  FileName = filedialog.askopenfilename(initialdir="./storage/")
+  Navigator.LoadStdDb(FilePath=FileName)
+
+def GetStdDbInfo():
+  DbInfo = Navigator.GetStdDbInfo()
+  message = "NAME: " + DbInfo["NAME"] + "\n"
+  message+= "CRC:  0x" + hex(DbInfo["CRC"])[2:] + "\n"
+  message+= "CYCLE: " + DbInfo["CYCLE"]
+  messagebox.showinfo(title="STD-DB INFO", message=message)
 
 def RefreshFpl():
   GamaList.config(state="normal")
@@ -230,6 +233,7 @@ LoadFpl_Icon  = tk.PhotoImage(file="./Resources/LoadFpl.png")
 DTO_Icon      = tk.PhotoImage(file="./Resources/D-TO.png")
 SAR_Icon      = tk.PhotoImage(file="./Resources/SAR.png")
 TXT_Logo      = tk.PhotoImage(file="./Resources/TXT.png")
+DataBase_Icon = tk.PhotoImage(file="./Resources/DataBase.png")
 
 FplRepr = tk.StringVar(master = home)
 WpIsFlyOver = tk.IntVar(master=home)
@@ -258,9 +262,9 @@ MainMenuBar.add_cascade(label="PROCEDURES",menu=ProcMenu,font=MenuFontTuple)
 ProcMenu.add_command(label="Load SID...", state="disabled", font=MenuFontTuple)
 ProcMenu.add_command(label="Load STAR...", state="disabled", font=MenuFontTuple)
 
-MainMenuBar.add_cascade(label="VIEW CONTROL",menu=ViewMenu, font=MenuFontTuple)
-ViewMenu.add_command(label="CENTER ON HELI",state="active", font= MenuFontTuple, command=SetMapAspect)
-ViewMenu.add_command(label="CENTER ON WPT...",state="normal",command=ShowSetCdsCenterPopUp)
+MainMenuBar.add_cascade(label="DATABASE",menu=ViewMenu, font=MenuFontTuple)
+ViewMenu.add_command(label="LOAD STD-DB",state="active", font= MenuFontTuple, command=LoadStdDbCallB)
+ViewMenu.add_command(label="STD-DB INFO",state="normal",command=GetStdDbInfo)
 ViewMenu.add_command(label="CENTER ON OBJECT...",state="disabled")
 ViewMenu.add_command(label="ROTATE MAP...",state="normal",command=ShowCdsAspectPopUp)
 
@@ -371,7 +375,7 @@ SetCdsRotationGroup.grid(row=1, column=1)
 SetCdsRotationIndex = tk.Label(master= SetCdsRotationGroup, text="NEW BEARING:", font=DefaultFontTuple)
 SetCdsRotationIndex.grid(row=0,column=0)
 CmdSetCdsRotation = tk.Button(master = SetCdsRotationGroup, text= "ROTATE MAP",
-                            command=SetMapAspect, font=DefaultFontTuple)
+                            command=LoadStdDbCallB, font=DefaultFontTuple)
 CmdSetCdsRotation.grid(row=1, column=0)
 TxtNewBearing = tk.Spinbox(master= SetCdsRotationGroup, width=3, font=DefaultFontTuple, from_=1, to=360, justify="right")
 TxtNewBearing.grid(row=0,column=1)
