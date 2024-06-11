@@ -13,6 +13,11 @@ class SteerMachine:
         self.OriginLat = np.float64(0.0)
         self.OriginLon = np.float64(0.0)
         self.XTE = np.float64(0.0)
+        self.Mode = np.int32(0) # 0=NAV, 1=TURN
+        self.StartHdg = np.float64(0.0)
+        self.Speed = np.float64(0.0)
+        self.TurnRadius = np.float64(0.0)
+        self.TargetTrack = np.float64(0.0)
 
     def UpdateDestination(self, DestLat, DestLon):
         self.DestLat = np.float64(DestLat)
@@ -28,6 +33,7 @@ class SteerMachine:
         self.MyLon = lon
 
     def GetRollSteer(self) -> np.float64:
+      if self.Mode == 0:
         DesiredTrack = GeoSolver.GreatCircleInitAz(LatFrom=self.OriginLat,
                                                    LonFrom=self.OriginLon,
                                                    LatTo=self.DestLat,
@@ -56,3 +62,16 @@ class SteerMachine:
         elif output < -MAX_BANK:
             output = -MAX_BANK
         return output
+      elif self.Mode == 1:
+        AngSpeed = self.Speed / self.TurnRadius
+        NormAcc = np.power(AngSpeed, 2) * self.TurnRadius
+        output = NormAcc / 9.81
+        DesiredTrack = GeoSolver.GreatCircleInitAz(LatFrom=self.OriginLat,
+                                                   LonFrom=self.OriginLon,
+                                                   LatTo=self.DestLat,
+                                                   LonTo=self.DestLon)
+        if np.absolute(self.MyHdg - DesiredTrack) < np.deg2rad(1):
+            self.Mode = 0
+        return output
+      else:
+          return np.float64(0.0)

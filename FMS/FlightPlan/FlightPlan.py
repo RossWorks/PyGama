@@ -6,6 +6,7 @@ if __name__ == "__main__":
 from . import FplWaypoint
 from CDS import GamaWaypoint
 from FMS.Common import GeoSolver
+import numpy as np
 
 FPL_MAX_SIZE : int = 200
 ACHIEVEMENT_THRS : float = 0.5 * 1852
@@ -26,29 +27,31 @@ class FlightPlan:
                                          Lon=PposLon,
                                          isFlyOver=True)
     self.Waypoints.append(NewFromWpt)
+    self.AttributesComputation()
     self.RecomputeExpFp()
 
-  def __repr__(self, Gama : bool = False) -> str:
+  def __str__(self) -> str:
     output : str = ""
     Counter : int = 1
-    if Gama:
-      for Waypoint in self.ExpandedWaypoints:
-        output += str(Counter).rjust(3) + " --> " + str(Waypoint)
-        Counter += 1
-    else:
-      for Waypoint in self.Waypoints:
-        output += str(Counter).rjust(3) + " --> " + str(Waypoint)
-        Counter += 1
+    for Waypoint in self.ExpandedWaypoints:
+      output += str(Counter).rjust(3) + " --> " + str(Waypoint)
+      Counter += 1
     return output
   
-  def CheckAchievement(self, PposLat : float, PposLon : float) -> bool:
+  def CheckAchievement(self, PposLat : float, PposLon : float) -> dict:
+    output = dict()
     if len(self.Waypoints) < 2:
-      return False
-    Distance2Go = GeoSolver.GreatCircleDistance(PposLat,PposLon, self.ExpandedWaypoints[1].Lat,self.ExpandedWaypoints[1].Lon)
-    if Distance2Go > ACHIEVEMENT_THRS:
-      return False
+      output["valid"] = False
+      return output
+    Distance2Go = GeoSolver.GreatCircleDistance(PposLat,PposLon, self.Waypoints[1].Lat,self.Waypoints[1].Lon)
+    if Distance2Go > (ACHIEVEMENT_THRS + self.Waypoints[1].TurnAnticipation):
+      output["valid"] = False
+      return output
+    output["turnradius"] = self.Waypoints[1].TurnRadius
+    output["trackchange"] = self.Waypoints[1].TrackChange
+    output["valid"] = True
     self.RemoveWp(DeleteIndex=1)
-    return True
+    return output 
   
   def FormatForFile(self) -> str:
     output : str = ""
@@ -78,6 +81,7 @@ class FlightPlan:
     else:
       print("Waypoint insertion @ line " + str(InsertInPos))
       self.Waypoints.insert(InsertInPos-1, Wpt)
+    self.AttributesComputation()
     self.RecomputeExpFp()
     
   def RemoveWp(self, DeleteIndex : int):
@@ -86,6 +90,7 @@ class FlightPlan:
       return
     print("Waypoint deletion from line " + str(DeleteIndex))
     self.Waypoints.pop(DeleteIndex-1)
+    self.AttributesComputation()
     self.RecomputeExpFp()
 
   def InternalDirTo(self, DtoIndex : int, PposLat : float, PposLon : float):
@@ -97,7 +102,32 @@ class FlightPlan:
     self.Waypoints.insert(0, PPOS)
     self.Waypoints[0].WpReprCat = 0
     self.Waypoints[1].WpReprCat = 1
+    self.AttributesComputation()
     self.RecomputeExpFp()
+
+  
+  def AttributesComputation(self):
+    self.Waypoints[0].SetFlyOver(FlyOver=True)
+    for index in range(1, len(self.Waypoints) - 1):
+        FlyByData = GeoSolver.SolveFlyBy(LatFrom=self.Waypoints[index-1].Lat,
+                                         LonFrom=self.Waypoints[index-1].Lon,
+                                         LatTo=self.Waypoints[index].Lat,
+                                         LonTo=self.Waypoints[index].Lon,
+                                         LatNext=self.Waypoints[index+1].Lat,
+                                         LonNext=self.Waypoints[index+1].Lon)
+        if FlyByData.Valid:
+            self.Waypoints[index].TurnAnticipation = GeoSolver.GreatCircleDistance(LatFrom=self.Waypoints[index].Lat,
+                                                                                   LonFrom=self.Waypoints[index].Lon,
+                                                                                   LatTo=FlyByData.Pwp1_Lat,
+                                                                                   LonTo=FlyByData.Pwp1_Lon)
+            self.Waypoints[index].TurnRadius = 4 * 1852
+        else:
+            self.Waypoints[index].TurnAnticipation = 0
+            self.Waypoints[index].TurnRadius = 4 * 1852 * 0
+        for element in self.Waypoints:
+          print("Turn anticipation for " + element.Name + " WP = " + str(element.TurnAnticipation))
+        self.Waypoints[index].TrackChange = FlyByData.TrkChange * (-1 if FlyByData.LeftTurn else 1)
+        
 
   def RecomputeExpFp(self):
     print("Recompute of Gama Flight Plan")

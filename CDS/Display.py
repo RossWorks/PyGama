@@ -141,8 +141,6 @@ class Display:
     for point in GraphWps:
       self.CdMap.plot(point.Theta, point.Rho/1852, marker=point.Marker, color = point.Color)
       self.CdMap.text(point.Theta, point.Rho/1852, point.Name)
-    print("")
-    print("")
     self.SetCDSRange(self.Range)
     self.Cdscreen.draw()
 
@@ -162,7 +160,7 @@ class Display:
 
   def _RenderGamaFpl(self, GamaFpl : list[GamaWaypoint.GamaWaypoint]) -> list[GraphFpSegment]:
     self.StoredFpl = GamaFpl.copy()
-    print("CDS: Updating Flight plan")
+    #print("CDS: Updating Flight plan")
     output = list()
     TmpSegment = GraphFpSegment()
     FpSize = len(GamaFpl)
@@ -177,7 +175,7 @@ class Display:
         TmpSegment.Color = 'm' if index == 0 else 'k'
         TmpSegment.Intended = False
         if GamaFpl[index].ConicApp:
-          print("Calculating 2D Arc from " + str(GamaFpl[index].Name) + " to " + str(GamaFpl[index+1].Name))
+          #print("Calculating 2D Arc from " + str(GamaFpl[index].Name) + " to " + str(GamaFpl[index+1].Name))
           TmpSegment.Route = self._DrawPolarArc(StartPoint = GamaFpl[index],
                                            EndPoint   = EndOfArcPoint)
           output.append(TmpSegment)
@@ -187,7 +185,7 @@ class Display:
             TmpSegment.Route = self._DrawPolarStraightLine(StartPoint = EndOfArcPoint,
                                                            EndPoint   = GamaFpl[index+1])
         elif not GamaFpl[index].GapFollows:
-          print("calculating 2D straight line from " + str(GamaFpl[index].Name) + " to " + str(GamaFpl[index+1].Name))
+          #print("calculating 2D straight line from " + str(GamaFpl[index].Name) + " to " + str(GamaFpl[index+1].Name))
           TmpSegment.Route = self._DrawPolarStraightLine(StartPoint = GamaFpl[index],
                                                          EndPoint   = GamaFpl[index+1])
           output.append(TmpSegment)

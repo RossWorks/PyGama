@@ -29,8 +29,19 @@ class FMS:
     self.SteerMachine = Steering.Steering.SteerMachine()
   
   def ElaborationStep(self):
-    self.FlightPlan.CheckAchievement(PposLat=self.HeloState.lat,
-                                     PposLon=self.HeloState.lon)
+    FP_Data = self.FlightPlan.CheckAchievement(PposLat=self.HeloState.lat,
+                                               PposLon=self.HeloState.lon)
+    if FP_Data["valid"] and len(self.FlightPlan.Waypoints) > 1:
+      self.SteerMachine.UpdateOrigin(OriginLat=self.FlightPlan.Waypoints[0].Lat,
+                                     OriginLon=self.FlightPlan.Waypoints[0].Lon)
+      self.SteerMachine.UpdateDestination(DestLat=self.FlightPlan.Waypoints[1].Lat,
+                                          DestLon=self.FlightPlan.Waypoints[1].Lon)
+      if FP_Data["turnradius"] > 0:
+          self.SteerMachine.Mode = 1
+          print("Steering Mode = 1")
+          self.SteerMachine.TurnRadius = np.float64(FP_Data["turnradius"])
+          self.SteerMachine.TargetTrack = np.float64(FP_Data["trackchange"]) + self.HeloState.Heading
+    self.SteerMachine.UpdatePpos(lat=self.HeloState.lat, lon=self.HeloState.lon, hdg=self.HeloState.Heading)
     self.HeloState.SteerCmd = self.SteerExecutionStep()    
 
   def InsertWpInAfpl(self, Wpt : FlightPlan.FplWaypoint,
@@ -86,15 +97,16 @@ class FMS:
     self.HeloState.Speed = np.float64(Gs)
 
   def SteerExecutionStep(self) -> np.float64:
-    if len(self.FlightPlan.ExpandedWaypoints) < 2:
+    if len(self.FlightPlan.Waypoints) < 2:
       return np.float64(0.0)
     self.SteerMachine.UpdatePpos(lat = self.HeloState.lat,
                                  lon = self.HeloState.lon,
                                  hdg = self.HeloState.Heading)
-    self.SteerMachine.UpdateDestination(DestLat=self.FlightPlan.ExpandedWaypoints[1].Lat,
-                                        DestLon=self.FlightPlan.ExpandedWaypoints[1].Lon)
-    self.SteerMachine.UpdateOrigin(OriginLat=self.FlightPlan.ExpandedWaypoints[0].Lat,
-                                   OriginLon=self.FlightPlan.ExpandedWaypoints[0].Lon)
+    self.SteerMachine.UpdateDestination(DestLat=self.FlightPlan.Waypoints[1].Lat,
+                                        DestLon=self.FlightPlan.Waypoints[1].Lon)
+    self.SteerMachine.UpdateOrigin(OriginLat=self.FlightPlan.Waypoints[0].Lat,
+                                   OriginLon=self.FlightPlan.Waypoints[0].Lon)
+    self.SteerMachine.Speed = self.HeloState.Speed
     SteerCmd = self.SteerMachine.GetRollSteer()
     self.HeloState.XTE = self.SteerMachine.XTE
     return SteerCmd
