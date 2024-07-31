@@ -44,8 +44,8 @@ class Helicopter:
 
   def SimulationStep(self) -> None:
     NormAcc = Gravity * np.tan(self.bank)
-    TurnRadius = np.power(self.V, 2) / NormAcc
-    if np.isfinite(TurnRadius):
+    if NormAcc != np.float64(0.0):
+      TurnRadius = np.power(self.V, 2) / NormAcc
       AngSpeed = np.sqrt(NormAcc/TurnRadius) * np.sign(TurnRadius)
     else:
       AngSpeed = np.float64(0.0)

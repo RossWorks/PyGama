@@ -38,7 +38,7 @@ def SimulationStep():
   DisplayUnit.MapCenter = [Navigator.HeloState.lat, Navigator.HeloState.lon]
   Nav2Edcudata = Navigator.DataForEDCU()
   ProgressReport.Update(Nav2Edcudata)
-  if minor % 3000 == 0:
+  if minor % 1000 == 0:
     RefreshFpl()
     DisplayUnit.MapOrientation = Navigator.HeloState.Heading + math.radians(90)
 
@@ -68,7 +68,7 @@ def SetMapAspect():
 def RefreshFpl():
   GamaList.config(state="normal")
   GamaList.delete('1.0',tk.END)
-  GamaList.insert('1.0',Navigator.FlightPlan.__repr__(Gama=True))
+  GamaList.insert('1.0',str(Navigator.FlightPlan))
   GamaList.config(state="disabled")   
   #2D Gama FPL
   DisplayUnit.RefreshFpl(Fpl=Navigator.FlightPlan.ExpandedWaypoints)
