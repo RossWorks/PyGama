@@ -1,7 +1,6 @@
 from . import FlightPlan, Steering, Common
-from EDCU import EDCU
 import numpy as np
-
+import socket
 
 class BestData:
 
@@ -27,6 +26,17 @@ class FMS:
     self.FlightPlan = FlightPlan.FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
                                                        PposLon=self.HeloState.lon)
     self.SteerMachine = Steering.Steering.SteerMachine()
+    self.Sockets : dict[int : socket] = {}
+    self.InitSockets()
+
+  def InitSockets(self) -> int:
+    fails : int = 0
+    try:
+      self.Sockets["SENSORS_IN"] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+      self.Sockets["SENSORS_IN"].bind(("127.0.0.1",11111))
+    except:
+      fails += 1
+    return fails
   
   def ElaborationStep(self):
     FP_Data = self.FlightPlan.CheckAchievement(PposLat=self.HeloState.lat,
@@ -55,7 +65,7 @@ class FMS:
     self.FlightPlan = FlightPlan.FlightPlan.FlightPlan(PposLat=self.HeloState.lat,
                                             PposLon=self.HeloState.lon)
     
-  def LoadUsrFpl(self, FilePath):
+  def LoadUsrFpl(self, FilePath: str):
     FilePtr = open(file=FilePath, mode='r')
     self.DeselectAfpl()
     Index = 1
@@ -70,7 +80,7 @@ class FMS:
       Index += 1
     FilePtr.close()
 
-  def InternalDTO(self, WpIndex):
+  def InternalDTO(self, WpIndex: int):
     self.FlightPlan.InternalDirTo(DtoIndex=WpIndex, PposLat=self.HeloState.lat,
                                   PposLon= self.HeloState.lon)
 
@@ -80,17 +90,17 @@ class FMS:
     FilePtr.writelines(FileContent)
     FilePtr.close()
 
-  def SwitchFlyByState(self, Index):
+  def SwitchFlyByState(self, Index: int):
     self.FlightPlan.Waypoints[Index].FlyOver = not self.FlightPlan.Waypoints[Index].FlyOver
     self.FlightPlan.RecomputeExpFp()
 
-  def GetFlyByState(self, Index) -> bool:
+  def GetFlyByState(self, Index: int) -> bool:
     return self.FlightPlan.Waypoints[Index].FlyOver
 
-  def UpdateHeloState(self, Lat : float,
-                      Lon : float,
-                      Hdg : float,
-                      Gs : float):
+  def ReadSensors(self, Lat : float,
+                        Lon : float,
+                        Hdg : float,
+                        Gs : float):
     self.HeloState.lat = np.float64(Lat)
     self.HeloState.lon = np.float64(Lon)
     self.HeloState.Heading = np.float64(Hdg)
@@ -111,30 +121,14 @@ class FMS:
     self.HeloState.XTE = self.SteerMachine.XTE
     return SteerCmd
 
-  def DataForEDCU(self) -> EDCU.EDCUdata:
-    output = EDCU.EDCUdata()
-    output.Lat = self.HeloState.lat
-    output.Lon = self.HeloState.lon
-    output.GS  = self.HeloState.Speed
-    output.Hdg = self.HeloState.Heading
-    output.Distance2Go_To   = self.HeloState.Distance2Go_To
-    output.Distance2Go_Next = self.HeloState.Distance2Go_Next
-    output.Distance2Go_Dest = self.HeloState.Distance2Go_Dest
-    output.Time2Go_To   = self.HeloState.Time2Go_To
-    output.Time2Go_Next = self.HeloState.Time2Go_Next
-    output.Time2Go_Dest = self.HeloState.Time2Go_Dest
-    output.Fpl = self.FlightPlan.Waypoints
-    output.XTE = self.HeloState.XTE
-    return output
-
   def PerfoStep(self):
     if len(self.FlightPlan.Waypoints) < 2:
-      self.HeloState.Distance2Go_To = np.NaN
-      self.HeloState.Distance2Go_Next = np.NaN
-      self.HeloState.Distance2Go_Dest = np.NaN
-      self.HeloState.Time2Go_To = np.NaN
-      self.HeloState.Time2Go_Next = np.NaN
-      self.HeloState.Time2Go_Dest = np.NaN
+      self.HeloState.Distance2Go_To = np.nan
+      self.HeloState.Distance2Go_Next = np.nan
+      self.HeloState.Distance2Go_Dest = np.nan
+      self.HeloState.Time2Go_To = np.nan
+      self.HeloState.Time2Go_Next = np.nan
+      self.HeloState.Time2Go_Dest = np.nan
       return  
     PposLat = self.HeloState.lat
     PposLon = self.HeloState.lon
@@ -147,5 +141,5 @@ class FMS:
       NextLon   = self.FlightPlan.Waypoints[2].Lon
       self.HeloState.Distance2Go_Next = Common.GeoSolver.GreatCircleDistance(LatFrom=ToLat, LonFrom=ToLon, LatTo=NextLat, LonTo=NextLon)
       self.HeloState.Time2Go_Next = self.HeloState.Distance2Go_Next / self.HeloState.Speed
-    self.HeloState.Time2Go_Dest = np.NaN
-    self.HeloState.Distance2Go_Dest = np.NaN
+    self.HeloState.Time2Go_Dest = np.nan
+    self.HeloState.Distance2Go_Dest = np.nan

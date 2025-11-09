@@ -33,7 +33,7 @@ class Helicopter:
     self.Lat = Lat
     self.Lon = Lon
 
-  def SetRollAngle(self, NewRoll) -> None:
+  def SetRollAngle(self, NewRoll: np.float64) -> None:
     self.bank = NewRoll
 
   def SetSpeed(self, NewSpeed) -> None:

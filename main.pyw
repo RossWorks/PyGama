@@ -1,61 +1,26 @@
-import EDCU.EDCU
 import FMS.FMS
-import CDS, HELO, EDCU
+import CDS
 import math, os
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import HELO.FCS
-import HELO.Helicopter
+
 
 DefaultFontTuple = ("B612 mono", 10, "normal")
 MenuFontTuple    = ("B612 mono",  9, "normal")
 NumericFontTuple = ("B612", 10, "normal")
 KillApp : bool = False
-SimulationActive : bool = False
+
 minor : int = 0
 
 Navigator = FMS.FMS.FMS()
 
-FlightController = HELO.FCS.FCS(Mode=2, P=0.5, I=0.0, D=0.0)
-
-FlyingThing = HELO.Helicopter.Helicopter(Lat = math.radians(45.5),
-                                         Lon = math.radians(8.70))
-FlyingThing.V = 180 * 1852 / 3600
-
 def SimulationStep():
   global minor, FlightController, FlyingThing, SimulationActive
-  Navigator.UpdateHeloState(Lat=FlyingThing.Lat,
-                            Lon=FlyingThing.Lon,
-                            Hdg=FlyingThing.Hdg,
-                            Gs = FlyingThing.V)
   Navigator.ElaborationStep()
-  FlightController.SetCurrHdg(CurrHdg=Navigator.HeloState.Heading)
-  FlightController.SetFmsRollSteer(CmdFromFms=Navigator.HeloState.SteerCmd)
-  NewRoll = FlightController.ExecuteStep()
-  if SimulationActive:
-    FlyingThing.SetRollAngle(NewRoll=NewRoll)
-    FlyingThing.SimulationStep()
   DisplayUnit.MapCenter = [Navigator.HeloState.lat, Navigator.HeloState.lon]
-  Nav2Edcudata = Navigator.DataForEDCU()
-  ProgressReport.Update(Nav2Edcudata)
   if minor % 1000 == 0:
     RefreshFpl()
     DisplayUnit.MapOrientation = Navigator.HeloState.Heading + math.radians(90)
-
-def SetNewHdgCmd():
-  FlightController.SelHdg = math.radians(float(TxtSelHdg.get()))
-  FlightController.Mode = 1
-
-def ShowFcs():
-  FcsPanel.deiconify()
-
-def StartSimulation():
-  global SimulationActive
-  SimulationActive = True
-
-def StopSimulation():
-  global SimulationActive
-  SimulationActive = False
 
 def SetMapAspect():
   #Gama.MapRender.SetCdsCenter(Lat=math.radians(FlightPlan.Waypoints[0].Lat),
@@ -264,20 +229,12 @@ ViewMenu.add_command(label="CENTER ON WPT...",state="normal",command=ShowSetCdsC
 ViewMenu.add_command(label="CENTER ON OBJECT...",state="disabled")
 ViewMenu.add_command(label="ROTATE MAP...",state="normal",command=ShowCdsAspectPopUp)
 
-MainMenuBar.add_cascade(label="HELO CONTROL",menu=SimMenu, font=MenuFontTuple)
-SimMenu.add_command(label="START SIMULATION",state="normal", font= MenuFontTuple,command=StartSimulation)
-SimMenu.add_command(label="STOP SIMULATION",state="normal", font= MenuFontTuple, command=StopSimulation)
-SimMenu.add_command(label="SIM STEP",state="normal", command=SimulationStep)
-SimMenu.add_command(label="FCS PANEL",state="normal",command=ShowFcs)
-
 FplGroup = tk.LabelFrame(master = home, text="GRAPHICAL AREA", font=DefaultFontTuple)
 FplGroup.columnconfigure(index= 0, weight=1)
 FplGroup.rowconfigure(index=0,weight=1)
 FplGroup.grid(row=0,column=0, rowspan=2, sticky="news")
 FplWorkArea = ttk.Notebook(master = FplGroup)
 FplWorkArea.grid(row=0, column=0, sticky="news")
-ProgressReport = EDCU.EDCU.EDCU(master=FplWorkArea)
-FplWorkArea.add(ProgressReport.Screen, text="EDCU")
 GamaList = tk.Text(master=FplWorkArea, width=120,state="disabled", font=DefaultFontTuple)
 GamaList.grid(row=0,column=0, sticky="news")
 FplWorkArea.add(GamaList, text="GAMA PROTOCOL")
@@ -337,19 +294,6 @@ CmdDelete.grid(row=1, column=0)
 TxtDeleteIndex = tk.Spinbox(master= DeleteWpGroup, width=3, font=DefaultFontTuple, from_=0, to=200,justify="right")
 TxtDeleteIndex.grid(row=0,column=1)
 DeleteWpPopUp.withdraw()
-
-FcsPanel = tk.Toplevel(master=home)
-FcsPanel.protocol("WM_DELETE_WINDOW", FcsPanel.withdraw)
-LnavGroup = tk.LabelFrame(master = FcsPanel, text = "LNAV", font=DefaultFontTuple)
-LnavGroup.grid(row=1, column=1)
-LblSelHdg = tk.Label(master= LnavGroup, text="SELECTED HDG", font=DefaultFontTuple)
-LblSelHdg.grid(row=0,column=0)
-CmdHdgMode = tk.Button(master = LnavGroup, text= "SET HDG",
-                      command=SetNewHdgCmd, font=DefaultFontTuple)
-CmdHdgMode.grid(row=1, column=0)
-TxtSelHdg = tk.Spinbox(master= LnavGroup, width=3, font=DefaultFontTuple, from_=0, to=359,justify="center")
-TxtSelHdg.grid(row=0,column=1)
-FcsPanel.withdraw()
 
 SetCdsCenterPopUp = tk.Toplevel(master=home)
 SetCdsCenterPopUp.protocol("WM_DELETE_WINDOW", SetCdsCenterPopUp.withdraw)
