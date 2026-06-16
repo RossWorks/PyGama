@@ -4,8 +4,9 @@ if __name__ == "__main__":
   exit()
 
 from . import FplWaypoint
-from CDS import GamaWaypoint
-from FMS.Common import GeoSolver
+
+from . import GamaWaypoint
+import FMS.src.Common as Common
 import numpy as np
 
 FPL_MAX_SIZE : int = 200

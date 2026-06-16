@@ -1,5 +1,5 @@
 import numpy as np
-from ..Common import GeoSolver
+from FMS.src.Common import GeoSolver
 
 MAX_BANK = np.deg2rad(25)
 
