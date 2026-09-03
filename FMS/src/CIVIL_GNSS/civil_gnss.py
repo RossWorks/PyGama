@@ -28,23 +28,28 @@ class civil_gnss:
     def ParseData(self) -> None:
        index = 0
        while index < len(self.payload):
-          message = struct.unpack('>i',self.payload[index:index+4])[0]
-          label = message & 0xFF
-          if label == 0o1:
-            self.opmode = (message & 0x1C00) >> 10
-            self.satellites = (message & 0xE000) >> 14
-          elif label == 0o110:
-            self.lat = float((message & 0x1FFFFF00) >> 8) / 2**21 * 180
-          elif label == 0o111:
-             self.lon = float((message & 0x1FFFFF00) >> 8) / 2**21 * 180
-          index += 4
+         message = struct.unpack('>i',self.payload[index:index+4])[0]
+         label = int(f"{(message & 0xFF) & 0xFF:08b}"[::-1], 2) # this reverses the incoming label bits
+         if label == 0o1:
+           self.opmode = (message & 0x1C00) >> 10
+           self.satellites = (message & 0xE000) >> 14
+         elif label == 0o110:
+           self.lat = float((message & 0x1FFFFF00) >> 8) / 2**21 * 180
+         elif label == 0o111:
+           self.lon = float((message & 0x1FFFFF00) >> 8) / 2**21 * 180
+         elif label == 0o45:
+           self.track = float((message & 0x1FF00000) >> 20)
+         elif label == 0o76:
+           self.altitude = 0.0
+         index += 4
 
     def InitSockets(self) -> bool:
       fails : int = 0
       try:
         self.Socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.Socket.bind(("127.0.0.1",11111))
+        self.Socket.bind(("0.0.0.0",11111))
         self.Socket.setblocking(False)
+        print("GNSS socket OK")
       except:
         fails += 1
       return fails > 0
@@ -64,6 +69,10 @@ class civil_gnss:
     def getInteger(self, key: str) -> int:
        if key=="SATELLITES":
           return int(self.satellites)
+       elif key == "TRACK":
+          return int(self.track)
+       elif key == "ALTITUDE":
+          return int(self.altitude)
        else:
           return 0
        
